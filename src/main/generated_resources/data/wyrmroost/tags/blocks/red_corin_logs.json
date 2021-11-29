@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "wyrmroost:red_corin_log",
+    "wyrmroost:stripped_red_corin_log",
+    "wyrmroost:red_corin_wood",
+    "wyrmroost:stripped_red_corin_wood"
+  ]
+}

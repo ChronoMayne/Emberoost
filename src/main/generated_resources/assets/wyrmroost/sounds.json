@@ -1,0 +1,156 @@
+{
+  "entity.wings.flap": {
+    "sounds": [
+      "wyrmroost:entity/wings/flap1",
+      "wyrmroost:entity/wings/flap2",
+      "wyrmroost:entity/wings/flap3"
+    ],
+    "subtitle": "subtitles.entity.wings.flap"
+  },
+  "entity.breath.fire": {
+    "sounds": [
+      "wyrmroost:entity/breath/fire"
+    ],
+    "subtitle": "subtitles.entity.breath.fire"
+  },
+  "entity.canari_wyvern.idle": {
+    "sounds": [
+      "wyrmroost:entity/canari_wyvern/idle1",
+      "wyrmroost:entity/canari_wyvern/idle2",
+      "wyrmroost:entity/canari_wyvern/idle3",
+      "wyrmroost:entity/canari_wyvern/idle4"
+    ],
+    "subtitle": "subtitles.entity.canari_wyvern.idle"
+  },
+  "entity.canari_wyvern.hurt": {
+    "sounds": [
+      "wyrmroost:entity/canari_wyvern/hurt1",
+      "wyrmroost:entity/canari_wyvern/hurt2",
+      "wyrmroost:entity/canari_wyvern/hurt3"
+    ],
+    "subtitle": "subtitles.entity.canari_wyvern.hurt"
+  },
+  "entity.canari_wyvern.death": {
+    "sounds": [
+      "wyrmroost:entity/canari_wyvern/death"
+    ],
+    "subtitle": "subtitles.entity.canari_wyvern.death"
+  },
+  "entity.royal_red.idle": {
+    "sounds": [
+      "wyrmroost:entity/royal_red/idle1",
+      "wyrmroost:entity/royal_red/idle2"
+    ],
+    "subtitle": "subtitles.entity.royal_red.idle"
+  },
+  "entity.royal_red.hurt": {
+    "sounds": [
+      "wyrmroost:entity/royal_red/hurt1",
+      "wyrmroost:entity/royal_red/hurt2",
+      "wyrmroost:entity/royal_red/hurt3"
+    ],
+    "subtitle": "subtitles.entity.royal_red.hurt"
+  },
+  "entity.royal_red.death": {
+    "sounds": [
+      "wyrmroost:entity/royal_red/death"
+    ],
+    "subtitle": "subtitles.entity.royal_red.death"
+  },
+  "entity.royal_red.roar": {
+    "sounds": [
+      "wyrmroost:entity/royal_red/roar"
+    ],
+    "subtitle": "subtitles.entity.royal_red.roar"
+  },
+  "entity.alpine.idle": {
+    "sounds": [
+      "wyrmroost:entity/alpine/idle1",
+      "wyrmroost:entity/alpine/idle2"
+    ],
+    "subtitle": "subtitles.entity.alpine.idle"
+  },
+  "entity.alpine.hurt": {
+    "sounds": [
+      "wyrmroost:entity/alpine/hurt1",
+      "wyrmroost:entity/alpine/hurt2",
+      "wyrmroost:entity/alpine/hurt3"
+    ],
+    "subtitle": "subtitles.entity.alpine.hurt"
+  },
+  "entity.alpine.roar": {
+    "sounds": [
+      "wyrmroost:entity/alpine/roar",
+      "wyrmroost:entity/alpine/roar1",
+      "wyrmroost:entity/alpine/roar2"
+    ],
+    "subtitle": "subtitles.entity.alpine.roar"
+  },
+  "entity.alpine.death": {
+    "sounds": [
+      "wyrmroost:entity/alpine/death"
+    ],
+    "subtitle": "subtitles.entity.alpine.death"
+  },
+  "block.mulch.soft": {
+    "sounds": [
+      "wyrmroost:block/mulch/soft1",
+      "wyrmroost:block/mulch/soft2",
+      "wyrmroost:block/mulch/soft3"
+    ],
+    "subtitle": "subtitles.block.mulch.soft"
+  },
+  "block.mulch.hard": {
+    "sounds": [
+      "wyrmroost:block/mulch/hard1",
+      "wyrmroost:block/mulch/hard2",
+      "wyrmroost:block/mulch/hard3"
+    ],
+    "subtitle": "subtitles.block.mulch.hard"
+  },
+  "block.frosted_grass.soft": {
+    "sounds": [
+      "wyrmroost:block/frosted_grass/soft1",
+      "wyrmroost:block/frosted_grass/soft2",
+      "wyrmroost:block/frosted_grass/soft3"
+    ],
+    "subtitle": "subtitles.block.frosted_grass.soft"
+  },
+  "block.frosted_grass.hard": {
+    "sounds": [
+      "wyrmroost:block/frosted_grass/hard1",
+      "wyrmroost:block/frosted_grass/hard2",
+      "wyrmroost:block/frosted_grass/hard3"
+    ],
+    "subtitle": "subtitles.block.frosted_grass.hard"
+  },
+  "weather.sandstorm": {
+    "sounds": [
+      "wyrmroost:weather/sandstorm/sandstorm1",
+      "wyrmroost:weather/sandstorm/sandstorm2",
+      "wyrmroost:weather/sandstorm/sandstorm3",
+      "wyrmroost:weather/sandstorm/sandstorm4",
+      "wyrmroost:weather/sandstorm/sandstorm5",
+      "wyrmroost:weather/sandstorm/sandstorm6"
+    ],
+    "subtitle": "subtitles.weather.sandstorm"
+  },
+  "music.wyrmroost.ashen_desert": {
+    "sounds": [
+      {
+        "name": "wyrmroost:music/game/wyrmroost/ashen_desert",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.music.wyrmroost.ashen_desert"
+  },
+  "music.wyrmroost.tincture_weald": {
+    "sounds": [
+      {
+        "name": "wyrmroost:music/game/wyrmroost/tincture_weald",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.music.wyrmroost.tincture_weald"
+  }
+}
