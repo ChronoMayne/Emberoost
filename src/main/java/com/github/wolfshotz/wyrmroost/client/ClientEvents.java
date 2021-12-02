@@ -3,6 +3,7 @@ package com.github.wolfshotz.wyrmroost.client;
 import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.blocks.ThinLogBlock;
 import com.github.wolfshotz.wyrmroost.client.render.RenderHelper;
+import com.github.wolfshotz.wyrmroost.client.render.RoyalRedRender;
 import com.github.wolfshotz.wyrmroost.client.render.TarragonTomeRenderer;
 import com.github.wolfshotz.wyrmroost.client.render.entity.projectile.BreathWeaponRenderer;
 import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
@@ -34,6 +35,7 @@ import net.minecraftforge.client.event.*;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -62,7 +64,7 @@ public class ClientEvents
         forgeBus.addListener(RenderHelper::renderEntities);
         forgeBus.addListener(ClientEvents::cameraPerspective);
 
-        WRDimensionRenderInfo.init();
+        //WRDimensionRenderInfo.init();
     }
 
     // ====================
@@ -88,6 +90,9 @@ public class ClientEvents
             for (TileEntityType<?> entry : ModUtils.getRegistryEntries(WRBlockEntities.REGISTRY))
                 if (entry instanceof WRBlockEntities<?>) ((WRBlockEntities<?>) entry).callBack();
         });
+
+        RenderingRegistry.registerEntityRenderingHandler(WREntities.ROYAL_RED.get(),
+                manager -> new RoyalRedRender(manager));
     }
 
     private static void bakeParticles(ParticleFactoryRegisterEvent event)

@@ -41,6 +41,13 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import org.apache.commons.lang3.ArrayUtils;
 import org.lwjgl.glfw.GLFW;
+import software.bernie.geckolib3.core.IAnimatable;
+import software.bernie.geckolib3.core.PlayState;
+import software.bernie.geckolib3.core.builder.AnimationBuilder;
+import software.bernie.geckolib3.core.controller.AnimationController;
+import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
+import software.bernie.geckolib3.core.manager.AnimationData;
+import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -48,8 +55,12 @@ import java.util.EnumSet;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 
-public class RoyalRedEntity extends TameableDragonEntity
-{
+public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable {
+
+    private AnimationFactory factory = new AnimationFactory(this);
+
+
+
     private static final EntitySerializer<RoyalRedEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
@@ -59,13 +70,11 @@ public class RoyalRedEntity extends TameableDragonEntity
     public static final int ARMOR_SLOT = 0;
     private static final int MAX_KNOCKOUT_TIME = 3600; // 3 minutes
 
-    public static final Animation ROAR_ANIMATION = LogicalAnimation.create(70, RoyalRedEntity::roarAnimation, () -> RoyalRedModel::roarAnimation);
-    public static final Animation SLAP_ATTACK_ANIMATION = LogicalAnimation.create(30, RoyalRedEntity::slapAttackAnimation, () -> RoyalRedModel::slapAttackAnimation);
-    public static final Animation BITE_ATTACK_ANIMATION = LogicalAnimation.create(15, RoyalRedEntity::biteAttackAnimation, () -> RoyalRedModel::biteAttackAnimation);
-    public static final Animation[] ANIMATIONS = new Animation[]{ROAR_ANIMATION, SLAP_ATTACK_ANIMATION, BITE_ATTACK_ANIMATION};
+
 
     public static final DataParameter<Boolean> BREATHING_FIRE = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Boolean> KNOCKED_OUT = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Boolean> SITTING = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
 
     public final LerpedFloat flightTimer = LerpedFloat.unit();
     public final LerpedFloat sitTimer = LerpedFloat.unit();
@@ -144,9 +153,11 @@ public class RoyalRedEntity extends TameableDragonEntity
                 setBreathingFire(false);
 
             if (breathTimer.get() == 1) level.addFreshEntity(new FireBreathEntity(this));
-
+ //Roar Animation Trigger
+            /*
             if (noAnimations() && !isKnockedOut() && !isSleeping() && !isBreathingFire() && isJuvenile() && getRandom().nextDouble() < 0.0004)
                 AnimationPacket.send(this, ROAR_ANIMATION);
+*/
 
             if (isKnockedOut() && --knockOutTime <= 0) setKnockedOut(false);
         }
@@ -169,6 +180,7 @@ public class RoyalRedEntity extends TameableDragonEntity
             {
                 if (!level.isClientSide)
                 {
+                    /* Roar Animation Trigger
                     // base taming chances on consciousness; the closer it is to waking up the better the chances
                     if (tame(getRandom().nextInt(knockOutTime) < MAX_KNOCKOUT_TIME * 0.2d, player))
                     {
@@ -179,6 +191,8 @@ public class RoyalRedEntity extends TameableDragonEntity
                     eat(stack);
                     player.swing(hand);
                     return ActionResultType.SUCCESS;
+                    */
+
                 }
                 else return ActionResultType.CONSUME;
             }
@@ -243,13 +257,13 @@ public class RoyalRedEntity extends TameableDragonEntity
     public void recievePassengerKeybind(int key, int mods, boolean pressed)
     {
         if (!noAnimations()) return;
-
+/* Roar Animation Trigger
         if (key == KeybindHandler.MOUNT_KEY && pressed && !isBreathingFire())
         {
             if ((mods & GLFW.GLFW_MOD_CONTROL) != 0) setAnimation(ROAR_ANIMATION);
             else meleeAttack();
         }
-
+*/
         if (key == KeybindHandler.ALT_MOUNT_KEY && canBreatheFire()) setBreathingFire(pressed);
     }
 
@@ -259,9 +273,10 @@ public class RoyalRedEntity extends TameableDragonEntity
     }
 
     public void meleeAttack()
-    {
+    {/* Bite/slap Animation Trigger
         if (!level.isClientSide)
             AnimationPacket.send(this, isFlying() || getRandom().nextBoolean()? BITE_ATTACK_ANIMATION : SLAP_ATTACK_ANIMATION);
+      */
     }
 
     @Override
@@ -379,17 +394,20 @@ public class RoyalRedEntity extends TameableDragonEntity
         }
     }
 
+    //Get Knocked out Time
     public int getKnockOutTime()
     {
         return knockOutTime;
     }
 
+    //Set Knock out time
     public void setKnockoutTime(int i)
     {
         knockOutTime = Math.max(0, i);
         if (i > 0 && !isKnockedOut()) entityData.set(KNOCKED_OUT, true);
     }
 
+    //Has fall damage unless dragon is knocked out
     @Override
     public boolean causeFallDamage(float distance, float damageMultiplier)
     {
@@ -397,6 +415,7 @@ public class RoyalRedEntity extends TameableDragonEntity
         return super.causeFallDamage(distance, damageMultiplier);
     }
 
+    //Makes sure Dragon is not knocked out and is able to fly
     @Override
     public boolean canFly()
     {
@@ -456,12 +475,6 @@ public class RoyalRedEntity extends TameableDragonEntity
     }
 
     @Override
-    public Animation[] getAnimations()
-    {
-        return ANIMATIONS;
-    }
-
-    @Override
     public Attribute[] getScaledAttributes()
     {
         return ArrayUtils.addAll(super.getScaledAttributes(), ATTACK_KNOCKBACK);
@@ -480,6 +493,34 @@ public class RoyalRedEntity extends TameableDragonEntity
                 .add(FLYING_SPEED, 0.121)
                 .add(WREntities.Attributes.PROJECTILE_DAMAGE.get(), 4);
     }
+//Gecko Lib Information
+    @Override
+    public void registerControllers(AnimationData data) {
+
+        data.addAnimationController(new AnimationController(this, "controller", 0, this::predicate));
+    }
+
+    @Override
+    public AnimationFactory getFactory() {
+        return this.factory;
+    }
+
+    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event)
+    {
+
+        if(isInSittingPose()){
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.sit", true));
+            return PlayState.CONTINUE;
+        }else {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.idle", true));
+            return PlayState.CONTINUE;
+        }
+
+
+    }
+
+
+
 
     class AttackGoal extends Goal
     {
