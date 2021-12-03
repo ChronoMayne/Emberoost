@@ -107,3 +107,5 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8:processor'
 }
+
+jar.finalizedBy('reobfJar')
