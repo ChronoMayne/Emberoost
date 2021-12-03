@@ -460,13 +460,16 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
             return PlayState.CONTINUE;
 
         } else if (isFlying()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.flying", false));
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.flying", true));
             return PlayState.CONTINUE;
 
-        } else if (move()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.walk", false));
+        } else if (!(event.getLimbSwingAmount() > -0.15F && event.getLimbSwingAmount() < 0.15F)) {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.walk", true));
             return PlayState.CONTINUE;
 
+        } else {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.idle", true));
+            return PlayState.CONTINUE;
         }
     }
 
