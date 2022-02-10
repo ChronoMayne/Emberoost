@@ -40,7 +40,9 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
 import org.lwjgl.glfw.GLFW;
+import software.bernie.geckolib3.core.AnimationState;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -51,6 +53,7 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.logging.Logger;
 
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
@@ -58,6 +61,7 @@ import static net.minecraft.entity.ai.attributes.Attributes.*;
 public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable {
 
     private AnimationFactory factory = new AnimationFactory(this);
+
 
 
     private static final EntitySerializer<RoyalRedEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
@@ -72,7 +76,7 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
 
     public static final DataParameter<Boolean> BREATHING_FIRE = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Boolean> KNOCKED_OUT = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
-    public static final DataParameter<Boolean> SITTING = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Boolean> SLAP = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
 
     public final LerpedFloat flightTimer = LerpedFloat.unit();
     public final LerpedFloat sitTimer = LerpedFloat.unit();
@@ -103,6 +107,7 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
         entityData.define(BREATHING_FIRE, false);
         entityData.define(KNOCKED_OUT, false);
         entityData.define(FLYING, false);
+        entityData.define(SLAP, false);
         entityData.define(ARMOR, ItemStack.EMPTY);
     }
 
@@ -111,12 +116,17 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
         super.registerGoals();
 
         goalSelector.addGoal(4, new MoveToHomeGoal(this));
-        goalSelector.addGoal(5, new AttackGoal());
+        if (isFlying()) {
+            goalSelector.addGoal(5, new AttackGoal());
+        }
+        //Does attack
+        goalSelector.addGoal(5, new MeleeAttackGoal(this, 1.1d, true));
         goalSelector.addGoal(6, new WRFollowOwnerGoal(this));
         goalSelector.addGoal(7, new DragonBreedGoal(this));
         goalSelector.addGoal(9, new FlyerWanderGoal(this, 1));
         goalSelector.addGoal(10, new LookAtGoal(this, LivingEntity.class, 10f));
         goalSelector.addGoal(11, new LookRandomlyGoal(this));
+
 
         targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
         targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
@@ -149,6 +159,7 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
             if (noAnimations() && !isKnockedOut() && !isSleeping() && !isBreathingFire() && isJuvenile() && getRandom().nextDouble() < 0.0004)
                 AnimationPacket.send(this, ROAR_ANIMATION);
 */
+
 
             if (isKnockedOut() && --knockOutTime <= 0) setKnockedOut(false);
         }
@@ -186,6 +197,16 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
         return super.playerInteraction(player, hand, stack);
     }
 
+    //If entity is attacking, (in this case hand is the default, then running the animation when it swings its "hand" will run the animation normally)
+    @Override
+    public void swing(Hand hand)
+    {
+        entityData.set(SLAP, true);
+        playSound(SoundEvents.GENERIC_EAT, 1, 1, true);
+        super.swing(hand);
+    }
+
+    //Play sound for roar during animation
     public void roarAnimation(int time) {
         if (time == 0) playSound(WRSounds.ENTITY_ROYALRED_ROAR.get(), 3, 1, true);
         ((LessShitLookController) getLookControl()).stopLooking();
@@ -442,6 +463,9 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
     public void registerControllers(AnimationData data) {
 
         data.addAnimationController(new AnimationController(this, "controller", 0, this::predicate));
+
+        //Creates second animation controller
+        data.addAnimationController(new AnimationController(this, "controller2", 0, this::predicate2));
     }
 
     @Override
@@ -449,7 +473,11 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
         return this.factory;
     }
 
+
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+
+
+
 
         if (isSleeping()) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.sleep", true));
@@ -471,6 +499,46 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.idle", true));
             return PlayState.CONTINUE;
         }
+    }
+
+    //Runs 2 animations at once
+    private <E extends IAnimatable> PlayState predicate2(AnimationEvent<E> event) {
+
+
+
+        AnimationController controller = factory.getOrCreateAnimationData(this.getId()).getAnimationControllers().get("controller");
+        if (isFlying() && isBreathingFire()) {
+            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.flying")) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.roar", true));
+                return PlayState.CONTINUE;
+            }
+        } else if (event.isMoving() && !isFlying() && isBreathingFire()) {
+            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.walk")) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.roar", true));
+                return PlayState.CONTINUE;
+            }
+        } else if (onGround && !isInSittingPose() && isBreathingFire()) {
+            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.idle")) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.roar", true));
+                return PlayState.CONTINUE;
+            }
+        }else if (entityData.get(SLAP)) {
+            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.walk")) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
+                return PlayState.CONTINUE;
+            }
+        }else if (entityData.get(SLAP)) {
+            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.idle")) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
+                return PlayState.CONTINUE;
+            }
+        }else if (entityData.get(SLAP)) {
+            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.flying")) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
+                return PlayState.CONTINUE;
+            }
+        }
+        return PlayState.STOP;
     }
 
         class AttackGoal extends Goal {
