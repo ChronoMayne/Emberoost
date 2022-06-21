@@ -7,6 +7,7 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.FlyerWand
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.MoveToHomeGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
 import com.github.wolfshotz.wyrmroost.entities.projectile.WindGustEntity;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
@@ -32,11 +33,12 @@ import net.minecraftforge.client.event.EntityViewRenderEvent;
 
 import javax.annotation.Nullable;
 
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class AlpineEntity extends TameableDragonEntity
 {
-    public static final EntitySerializer<AlpineEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
+    public static final EntitySerializer<AlpineEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant));
 

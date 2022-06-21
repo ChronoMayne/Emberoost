@@ -1,26 +1,23 @@
-package com.github.wolfshotz.wyrmroost.entities.dragon;
+package com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred;
 
 import com.github.wolfshotz.wyrmroost.WRConfig;
 import com.github.wolfshotz.wyrmroost.client.ClientEvents;
-import com.github.wolfshotz.wyrmroost.client.model.entity.RoyalRedModel;
 import com.github.wolfshotz.wyrmroost.client.screen.DragonControlScreen;
 import com.github.wolfshotz.wyrmroost.client.sound.BreathSound;
 import com.github.wolfshotz.wyrmroost.containers.BookContainer;
+import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.DragonInventory;
-import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.LessShitLookController;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.*;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred.goals.RedRoyalDragonAttackGoal;
 import com.github.wolfshotz.wyrmroost.entities.projectile.breath.FireBreathEntity;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
-import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
 import com.github.wolfshotz.wyrmroost.registry.WREntities;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
 import com.github.wolfshotz.wyrmroost.util.LerpedFloat;
-import com.github.wolfshotz.wyrmroost.util.Mafs;
-import com.github.wolfshotz.wyrmroost.util.animation.Animation;
-import com.github.wolfshotz.wyrmroost.util.animation.LogicalAnimation;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -32,68 +29,62 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
 import net.minecraft.util.*;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.logging.log4j.LogManager;
-import org.lwjgl.glfw.GLFW;
-import software.bernie.geckolib3.core.AnimationState;
 import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import javax.annotation.Nullable;
-import java.util.EnumSet;
-import java.util.logging.Logger;
 
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.ARMOR;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 
-public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable {
+public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable {
 
     private AnimationFactory factory = new AnimationFactory(this);
 
 
-
-    private static final EntitySerializer<RoyalRedEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
+    private static final EntitySerializer<RoyalRedDragon> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)
-            .track(EntitySerializer.INT, "KnockOutTime", RoyalRedEntity::getKnockOutTime, RoyalRedEntity::setKnockoutTime));
+            .track(EntitySerializer.INT, "KnockOutTime", RoyalRedDragon::getKnockOutTime, RoyalRedDragon::setKnockoutTime));
 
     public static final int ARMOR_SLOT = 0;
     private static final int MAX_KNOCKOUT_TIME = 3600; // 3 minutes
 
 
-    public static final DataParameter<Boolean> BREATHING_FIRE = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
-    public static final DataParameter<Boolean> KNOCKED_OUT = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
-    public static final DataParameter<Boolean> SLAP = EntityDataManager.defineId(RoyalRedEntity.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Boolean> BREATHING_FIRE = EntityDataManager.defineId(RoyalRedDragon.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Boolean> KNOCKED_OUT = EntityDataManager.defineId(RoyalRedDragon.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Boolean> SLAP = EntityDataManager.defineId(RoyalRedDragon.class, DataSerializers.BOOLEAN);
 
     public final LerpedFloat flightTimer = LerpedFloat.unit();
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public final LerpedFloat breathTimer = LerpedFloat.unit();
     public final LerpedFloat knockOutTimer = LerpedFloat.unit();
     private int knockOutTime = 0;
+    private final RoyalRedDragonAttacks attacks;
+    private final RoyalRedDragonAnimationController animationController;
 
-    public RoyalRedEntity(EntityType<? extends TameableDragonEntity> dragon, World level) {
+    public RoyalRedDragon(EntityType<? extends TameableDragonEntity> dragon, World level) {
         super(dragon, level);
         noCulling = WRConfig.NO_CULLING.get();
 
         setPathfindingMalus(PathNodeType.DANGER_FIRE, 0);
         setPathfindingMalus(PathNodeType.DAMAGE_FIRE, 0);
+
+        this.attacks = new RoyalRedDragonAttacks(this);
+        this.animationController = new RoyalRedDragonAnimationController(this);
     }
 
     @Override
-    public EntitySerializer<RoyalRedEntity> getSerializer() {
+    public EntitySerializer<RoyalRedDragon> getSerializer() {
         return SERIALIZER;
     }
 
@@ -117,7 +108,7 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
 
         goalSelector.addGoal(4, new MoveToHomeGoal(this));
         if (isFlying()) {
-            goalSelector.addGoal(5, new AttackGoal());
+            goalSelector.addGoal(5, new RedRoyalDragonAttackGoal(this));
         }
         //Does attack
         goalSelector.addGoal(5, new MeleeAttackGoal(this, 1.1d, true));
@@ -199,34 +190,10 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
 
     //If entity is attacking, (in this case hand is the default, then running the animation when it swings its "hand" will run the animation normally)
     @Override
-    public void swing(Hand hand)
-    {
+    public void swing(Hand hand) {
         entityData.set(SLAP, true);
         playSound(SoundEvents.GENERIC_EAT, 1, 1, true);
         super.swing(hand);
-    }
-
-    //Play sound for roar during animation
-    public void roarAnimation(int time) {
-        if (time == 0) playSound(WRSounds.ENTITY_ROYALRED_ROAR.get(), 3, 1, true);
-        ((LessShitLookController) getLookControl()).stopLooking();
-        for (LivingEntity entity : getEntitiesNearby(10, this::isAlliedTo))
-            entity.addEffect(new EffectInstance(Effects.DAMAGE_BOOST, 60));
-    }
-
-    public void slapAttackAnimation(int time) {
-        if (time == 7) playSound(WRSounds.ENTITY_ROYALRED_HURT.get(), 1, 1, true);
-        else if (time != 12) return;
-
-        attackInBox(getOffsetBox(getBbWidth()).inflate(0.2), 50);
-        yRot = yHeadRot;
-    }
-
-    private void biteAttackAnimation(int time) {
-        if (time == 4) {
-            attackInBox(getOffsetBox(getBbWidth()).inflate(-0.3), 100);
-            playSound(WRSounds.ENTITY_ROYALRED_HURT.get(), 2, 1, true);
-        }
     }
 
     @Override
@@ -267,12 +234,6 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
 
     public boolean canBreatheFire() {
         return ageProgress() > 0.75f;
-    }
-
-    public void meleeAttack() {/* Bite/slap Animation Trigger
-        if (!level.isClientSide)
-            AnimationPacket.send(this, isFlying() || getRandom().nextBoolean()? BITE_ATTACK_ANIMATION : SLAP_ATTACK_ANIMATION);
-      */
     }
 
     @Override
@@ -461,11 +422,7 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
     //Gecko Lib Information
     @Override
     public void registerControllers(AnimationData data) {
-
-        data.addAnimationController(new AnimationController(this, "controller", 0, this::predicate));
-
-        //Creates second animation controller
-        data.addAnimationController(new AnimationController(this, "controller2", 0, this::predicate2));
+        animationController.get().forEach(data::addAnimationController);
     }
 
     @Override
@@ -473,114 +430,7 @@ public class RoyalRedEntity extends TameableDragonEntity implements IAnimatable 
         return this.factory;
     }
 
-
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-
-
-
-
-        if (isSleeping()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.sleep", true));
-            return PlayState.CONTINUE;
-
-        } else if (isInSittingPose()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.sit", true));
-            return PlayState.CONTINUE;
-
-        } else if (isFlying()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.flying", true));
-            return PlayState.CONTINUE;
-
-        } else if (!(event.getLimbSwingAmount() > -0.15F && event.getLimbSwingAmount() < 0.15F)) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.walk", true));
-            return PlayState.CONTINUE;
-
-        } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.idle", true));
-            return PlayState.CONTINUE;
-        }
+    public RoyalRedDragonAttacks getAttacks() {
+        return attacks;
     }
-
-    //Runs 2 animations at once
-    private <E extends IAnimatable> PlayState predicate2(AnimationEvent<E> event) {
-
-
-
-        AnimationController controller = factory.getOrCreateAnimationData(this.getId()).getAnimationControllers().get("controller");
-        if (isFlying() && isBreathingFire()) {
-            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.flying")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.roar", true));
-                return PlayState.CONTINUE;
-            }
-        } else if (event.isMoving() && !isFlying() && isBreathingFire()) {
-            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.walk")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.roar", true));
-                return PlayState.CONTINUE;
-            }
-        } else if (onGround && !isInSittingPose() && isBreathingFire()) {
-            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.idle")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.roar", true));
-                return PlayState.CONTINUE;
-            }
-        }else if (entityData.get(SLAP)) {
-            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.walk")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
-                return PlayState.CONTINUE;
-            }
-        }else if (entityData.get(SLAP)) {
-            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.idle")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
-                return PlayState.CONTINUE;
-            }
-        }else if (entityData.get(SLAP)) {
-            if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.flying")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
-                return PlayState.CONTINUE;
-            }
-        }
-        return PlayState.STOP;
-    }
-
-        class AttackGoal extends Goal {
-            public AttackGoal() {
-                setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-            }
-
-            @Override
-            public boolean canUse() {
-                LivingEntity target = getTarget();
-                if (target != null && target.isAlive()) {
-                    if (!isWithinRestriction(target.blockPosition())) return false;
-                    return EntityPredicates.ATTACK_ALLOWED.test(target);
-                }
-                return false;
-            }
-
-            @Override
-            public void tick() {
-                LivingEntity target = getTarget();
-                double distFromTarget = distanceToSqr(target);
-                double degrees = Math.atan2(target.getZ() - getZ(), target.getX() - getX()) * (180 / Math.PI) - 90;
-                boolean isBreathingFire = isBreathingFire();
-                boolean canSeeTarget = getSensing().canSee(target);
-
-                getLookControl().setLookAt(target, 90, 90);
-
-                double headAngle = Math.abs(MathHelper.wrapDegrees(degrees - yHeadRot));
-                boolean shouldBreatheFire = !isAtHome() && (distFromTarget > 100 || target.getY() - getY() > 3 || isFlying()) && headAngle < 30 && canBreatheFire();
-                if (isBreathingFire != shouldBreatheFire) setBreathingFire(isBreathingFire = shouldBreatheFire);
-
-                if (getRandom().nextDouble() < 0.001 || distFromTarget > 900) setFlying(true);
-                else if (distFromTarget <= 24 && noAnimations() && !isBreathingFire && canSeeTarget) {
-                    yBodyRot = yRot = (float) Mafs.getAngle(RoyalRedEntity.this, target) + 90;
-                    meleeAttack();
-                }
-
-                if (getNavigation().isDone() || age % 10 == 0) {
-                    boolean isFlyingTarget = target instanceof TameableDragonEntity && ((TameableDragonEntity) target).isFlying();
-                    double y = target.getY() + (!isFlyingTarget && getRandom().nextDouble() > 0.1 ? 8 : 0);
-                    getNavigation().moveTo(target.getX(), y, target.getZ(), !isFlying() && isBreathingFire ? 0.8d : 1.3d);
-                }
-            }
-        }
-    }
+}

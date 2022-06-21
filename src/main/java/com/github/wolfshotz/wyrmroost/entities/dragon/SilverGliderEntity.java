@@ -4,6 +4,7 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DragonBre
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.FlyerWanderGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRAvoidEntityGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.network.packets.SGGlidePacket;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
@@ -36,11 +37,12 @@ import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Random;
 
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class SilverGliderEntity extends TameableDragonEntity
 {
-    private static final EntitySerializer<SilverGliderEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
+    private static final EntitySerializer<SilverGliderEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping));

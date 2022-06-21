@@ -11,6 +11,9 @@ import com.github.wolfshotz.wyrmroost.client.render.entity.EmptyRenderer;
 import com.github.wolfshotz.wyrmroost.client.render.entity.projectile.BreathWeaponRenderer;
 import com.github.wolfshotz.wyrmroost.client.render.entity.projectile.GeodeTippedArrowRenderer;
 import com.github.wolfshotz.wyrmroost.entities.dragon.*;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.ButterflyLeviathan;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred.RoyalRedDragon;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.CanariWyvern;
 import com.github.wolfshotz.wyrmroost.entities.dragonegg.DragonEggEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragonegg.DragonEggProperties;
 import com.github.wolfshotz.wyrmroost.entities.projectile.GeodeTippedArrowEntity;
@@ -92,10 +95,10 @@ public class WREntities<E extends Entity> extends EntityType<E>
             .renderModel(() -> RoostStalkerModel::new)
             .build();
 
-    public static final RegistryObject<EntityType<ButterflyLeviathanEntity>> BUTTERFLY_LEVIATHAN = ofGroup("butterfly_leviathan", ButterflyLeviathanEntity::new, EntityClassification.WATER_CREATURE)
+    public static final RegistryObject<EntityType<ButterflyLeviathan>> BUTTERFLY_LEVIATHAN = ofGroup("butterfly_leviathan", ButterflyLeviathan::new, EntityClassification.WATER_CREATURE)
             .size(4f, 3f)
-            .attributes(ButterflyLeviathanEntity::getAttributeMap)
-            .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.OCEAN_FLOOR_WG, ButterflyLeviathanEntity::getSpawnPlacement)
+            .attributes(ButterflyLeviathan::getAttributeMap)
+            .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.OCEAN_FLOOR_WG, ButterflyLeviathan::getSpawnPlacement)
             .spawnEgg(0x17283C, 0x7A6F5A)
             .dragonEgg(new DragonEggProperties(0.5f, 0.8f, 40000).setConditions(Entity::isInWater))
             .renderModel(() -> ButterflyLeviathanModel::new)
@@ -111,18 +114,18 @@ public class WREntities<E extends Entity> extends EntityType<E>
             .renderModel(() -> DragonFruitDrakeModel::new)
             .build();
 
-    public static final RegistryObject<EntityType<CanariWyvernEntity>> CANARI_WYVERN = creature("canari_wyvern", CanariWyvernEntity::new)
+    public static final RegistryObject<EntityType<CanariWyvern>> CANARI_WYVERN = creature("canari_wyvern", CanariWyvern::new)
             .size(0.65f, 0.85f)
-            .attributes(CanariWyvernEntity::getAttributeMap)
+            .attributes(CanariWyvern::getAttributeMap)
             .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING, TameableDragonEntity::canFlyerSpawn)
             .spawnEgg(0x1D1F28, 0x492E0E)
             .dragonEgg(new DragonEggProperties(0.175f, 0.275f, 6000).setConditions(c -> c.level.getBlockState(c.blockPosition().below()).getBlock() == Blocks.JUNGLE_LEAVES))
             .renderModel(() -> CanariWyvernModel::new)
             .build();
 
-    public static final RegistryObject<EntityType<RoyalRedEntity>> ROYAL_RED = creature("royal_red", RoyalRedEntity::new)
+    public static final RegistryObject<EntityType<RoyalRedDragon>> ROYAL_RED = creature("royal_red", RoyalRedDragon::new)
             .size(3f, 3.9f)
-            .attributes(RoyalRedEntity::getAttributeMap)
+            .attributes(RoyalRedDragon::getAttributeMap)
             .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING, TameableDragonEntity::canFlyerSpawn)
             .spawnEgg(0x8a0900, 0x0)
             .dragonEgg(new DragonEggProperties(0.45f, 0.7f, 72000))

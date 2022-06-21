@@ -6,6 +6,7 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DragonBre
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.MoveToHomeGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragonegg.DragonEggProperties;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
@@ -45,11 +46,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class DragonFruitDrakeEntity extends TameableDragonEntity implements IForgeShearable
 {
-    private static final EntitySerializer<DragonFruitDrakeEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
+    private static final EntitySerializer<DragonFruitDrakeEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)

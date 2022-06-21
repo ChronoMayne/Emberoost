@@ -7,6 +7,7 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DefendHom
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DragonBreedGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.MoveToHomeGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.AddPassengerPacket;
@@ -46,11 +47,13 @@ import net.minecraftforge.event.world.BiomeLoadingEvent;
 
 import javax.annotation.Nullable;
 
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.SLEEPING;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.VARIANT;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class RoostStalkerEntity extends TameableDragonEntity
 {
-    public static final EntitySerializer<RoostStalkerEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
+    public static final EntitySerializer<RoostStalkerEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant));
 

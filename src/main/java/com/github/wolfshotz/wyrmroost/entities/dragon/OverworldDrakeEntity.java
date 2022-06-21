@@ -9,6 +9,7 @@ import com.github.wolfshotz.wyrmroost.containers.BookContainer;
 import com.github.wolfshotz.wyrmroost.containers.util.DynamicSlot;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.DragonInventory;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.*;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
@@ -49,6 +50,8 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.ARMOR;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 /**
@@ -56,7 +59,7 @@ import static net.minecraft.entity.ai.attributes.Attributes.*;
  */
 public class OverworldDrakeEntity extends TameableDragonEntity
 {
-    private static final EntitySerializer<OverworldDrakeEntity> SERIALIZER = TameableDragonEntity.SERIALIZER.concat(b -> b
+    private static final EntitySerializer<OverworldDrakeEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping));

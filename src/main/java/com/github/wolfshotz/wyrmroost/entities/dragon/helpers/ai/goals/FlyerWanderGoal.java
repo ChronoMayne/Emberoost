@@ -1,6 +1,7 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals;
 
 import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
@@ -51,7 +52,7 @@ public class FlyerWanderGoal extends WaterAvoidingRandomWalkingGoal
 
         if (dragon.isFlying() || (!dragon.isLeashed() && dragon.getRandom().nextFloat() <= probability + 0.02))
         {
-            if ((dragon.hasDataParameter(TameableDragonEntity.SLEEPING) && !dragon.level.isDay()) || dragon.getRandom().nextFloat() <= probability)
+            if ((dragon.hasDataParameter(EntityConstants.SLEEPING) && !dragon.level.isDay()) || dragon.getRandom().nextFloat() <= probability)
                 position = RandomPositionGenerator.getLandPos(dragon, 20, 25);
             else
             {
