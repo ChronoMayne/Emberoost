@@ -13,6 +13,8 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.g
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.goals.ButterflyLeviathanJumpOutOfWaterGoal;
 import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
@@ -57,8 +59,6 @@ import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.VARIA
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class ButterflyLeviathan extends TameableDragonEntity {
-    public static final EntitySerializer<ButterflyLeviathan> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
-            .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant));
 
     public static final Animation LIGHTNING_ANIMATION = LogicalAnimation.create(64, ButterflyLeviathan::lightningAnimation, () -> ButterflyLeviathanModel::roarAnimation);
     public static final Animation CONDUIT_ANIMATION = LogicalAnimation.create(59, ButterflyLeviathan::conduitAnimation, () -> ButterflyLeviathanModel::conduitAnimation);
@@ -109,7 +109,7 @@ public class ButterflyLeviathan extends TameableDragonEntity {
 
     @Override
     public EntitySerializer<ButterflyLeviathan> getSerializer() {
-        return SERIALIZER;
+        return EntitySerializerBuilder.getEntitySerializer(this.getClass(),EntitySerializerType.VARIANT);
     }
 
     @Override

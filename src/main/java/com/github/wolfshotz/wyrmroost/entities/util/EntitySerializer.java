@@ -117,6 +117,12 @@ public class EntitySerializer<E extends Entity>
             return this;
         }
 
+        public <T> Builder<E> track(Entry<T, E> entry)
+        {
+            entries.add(entry);
+            return this;
+        }
+
         @SuppressWarnings("unchecked")
         private Entry<?, E>[] build()
         {

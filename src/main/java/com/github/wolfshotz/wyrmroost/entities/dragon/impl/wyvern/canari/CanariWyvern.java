@@ -6,8 +6,9 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.*;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.goals.CanariWyvernAttackGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.goals.CanariWyvernThreatenGoal;
-import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
@@ -35,11 +36,6 @@ import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class CanariWyvern extends TameableDragonEntity {
-
-    private static final EntitySerializer<CanariWyvern> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
-            .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
-            .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
-            .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping));
 
     public static final Animation FLAP_WINGS_ANIMATION = LogicalAnimation.create(22, CanariWyvern::flapWingsAnimation, () -> CanariWyvernModel::flapWingsAnimation);
     public static final Animation PREEN_ANIMATION = LogicalAnimation.create(36, null, () -> CanariWyvernModel::preenAnimation);
@@ -78,7 +74,7 @@ public class CanariWyvern extends TameableDragonEntity {
 
     @Override
     public EntitySerializer<CanariWyvern> getSerializer() {
-        return SERIALIZER;
+        return EntitySerializerBuilder.getEntitySerializer(this.getClass(),EntitySerializerType.SLEEPING, EntitySerializerType.VARIANT, EntitySerializerType.GENDER);
     }
 
     @Override

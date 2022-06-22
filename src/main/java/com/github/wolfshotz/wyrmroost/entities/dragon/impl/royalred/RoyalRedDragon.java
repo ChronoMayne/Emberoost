@@ -12,6 +12,8 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred.goals.RedRoy
 import com.github.wolfshotz.wyrmroost.entities.projectile.breath.FireBreathEntity;
 import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
@@ -49,13 +51,6 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
 
     private AnimationFactory factory = new AnimationFactory(this);
 
-
-    private static final EntitySerializer<RoyalRedDragon> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
-            .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
-            .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
-            .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)
-            .track(EntitySerializer.INT, "KnockOutTime", RoyalRedDragon::getKnockOutTime, RoyalRedDragon::setKnockoutTime));
-
     public static final int ARMOR_SLOT = 0;
     private static final int MAX_KNOCKOUT_TIME = 3600; // 3 minutes
 
@@ -85,7 +80,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
 
     @Override
     public EntitySerializer<RoyalRedDragon> getSerializer() {
-        return SERIALIZER;
+        return EntitySerializerBuilder.getEntitySerializer(this.getClass(),EntitySerializerType.SLEEPING, EntitySerializerType.VARIANT, EntitySerializerType.GENDER, EntitySerializerType.KNOCK_OUT_TIME);
     }
 
     @Override

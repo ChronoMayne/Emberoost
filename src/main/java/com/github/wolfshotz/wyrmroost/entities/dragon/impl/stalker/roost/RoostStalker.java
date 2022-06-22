@@ -11,6 +11,8 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowO
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.stalker.roost.goals.RoostStalkerScavengeGoal;
 import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.AddPassengerPacket;
 import com.github.wolfshotz.wyrmroost.registry.WREntities;
@@ -45,31 +47,24 @@ import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.SLEEP
 import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.VARIANT;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
-public class RoostStalker extends TameableDragonEntity
-{
-    public static final EntitySerializer<RoostStalker> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
-            .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)
-            .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant));
+public class RoostStalker extends TameableDragonEntity {
 
     public static final int ITEM_SLOT = 0;
     private static final DataParameter<ItemStack> ITEM = EntityDataManager.defineId(RoostStalker.class, DataSerializers.ITEM_STACK);
     private static final DataParameter<Boolean> SCAVENGING = EntityDataManager.defineId(RoostStalker.class, DataSerializers.BOOLEAN);
 
-    public RoostStalker(EntityType<? extends RoostStalker> stalker, World level)
-    {
+    public RoostStalker(EntityType<? extends RoostStalker> stalker, World level) {
         super(stalker, level);
         maxUpStep = 0;
     }
 
     @Override
-    public EntitySerializer<RoostStalker> getSerializer()
-    {
-        return SERIALIZER;
+    public EntitySerializer<RoostStalker> getSerializer() {
+        return EntitySerializerBuilder.getEntitySerializer(this.getClass(), EntitySerializerType.SLEEPING, EntitySerializerType.VARIANT);
     }
 
     @Override
-    protected void defineSynchedData()
-    {
+    protected void defineSynchedData() {
         super.defineSynchedData();
         entityData.define(SLEEPING, false);
         entityData.define(VARIANT, 0);
@@ -78,8 +73,7 @@ public class RoostStalker extends TameableDragonEntity
     }
 
     @Override
-    protected void registerGoals()
-    {
+    protected void registerGoals() {
         super.registerGoals();
 
         goalSelector.addGoal(3, new LeapAtTargetGoal(this, 0.4F));
@@ -91,11 +85,9 @@ public class RoostStalker extends TameableDragonEntity
         goalSelector.addGoal(10, new WaterAvoidingRandomWalkingGoal(this, 1));
         goalSelector.addGoal(11, new LookAtGoal(this, LivingEntity.class, 5f));
         goalSelector.addGoal(12, new LookRandomlyGoal(this));
-        goalSelector.addGoal(8, new AvoidEntityGoal<PlayerEntity>(this, PlayerEntity.class, 7f, 1.15f, 1f)
-        {
+        goalSelector.addGoal(8, new AvoidEntityGoal<PlayerEntity>(this, PlayerEntity.class, 7f, 1.15f, 1f) {
             @Override
-            public boolean canUse()
-            {
+            public boolean canUse() {
                 return !isTame() && !getItem().isEmpty() && super.canUse();
             }
         });
@@ -108,14 +100,12 @@ public class RoostStalker extends TameableDragonEntity
     }
 
     @Override
-    public void aiStep()
-    {
+    public void aiStep() {
         super.aiStep();
 
-        sleepTimer.add(isSleeping()? 0.08f : -0.15f);
+        sleepTimer.add(isSleeping() ? 0.08f : -0.15f);
 
-        if (!level.isClientSide)
-        {
+        if (!level.isClientSide) {
             ItemStack item = getStackInSlot(ITEM_SLOT);
             if (isFood(item) && getHealth() < getMaxHealth() && getRandom().nextDouble() <= 0.0075)
                 eat(item);
@@ -123,25 +113,21 @@ public class RoostStalker extends TameableDragonEntity
     }
 
     @Override
-    public ActionResultType playerInteraction(PlayerEntity player, Hand hand, ItemStack stack)
-    {
+    public ActionResultType playerInteraction(PlayerEntity player, Hand hand, ItemStack stack) {
         final ActionResultType success = ActionResultType.sidedSuccess(level.isClientSide);
 
         ItemStack heldItem = getItem();
         Item item = stack.getItem();
 
-        if (!isTame() && Tags.Items.EGGS.contains(item))
-        {
+        if (!isTame() && Tags.Items.EGGS.contains(item)) {
             eat(stack);
             if (tame(getRandom().nextDouble() < 0.25, player)) getAttribute(MAX_HEALTH).setBaseValue(20d);
 
             return success;
         }
 
-        if (isTame() && isBreedingItem(stack))
-        {
-            if (!level.isClientSide && canFallInLove() && getAge() == 0)
-            {
+        if (isTame() && isBreedingItem(stack)) {
+            if (!level.isClientSide && canFallInLove() && getAge() == 0) {
                 setInLove(player);
                 stack.shrink(1);
                 return ActionResultType.SUCCESS;
@@ -150,18 +136,14 @@ public class RoostStalker extends TameableDragonEntity
             return ActionResultType.CONSUME;
         }
 
-        if (isOwnedBy(player))
-        {
-            if (player.isShiftKeyDown())
-            {
+        if (isOwnedBy(player)) {
+            if (player.isShiftKeyDown()) {
                 setOrderedToSit(!isInSittingPose());
                 return success;
             }
 
-            if (stack.isEmpty() && heldItem.isEmpty() && !isLeashed() && player.getPassengers().size() < 3)
-            {
-                if (!level.isClientSide && startRiding(player, true))
-                {
+            if (stack.isEmpty() && heldItem.isEmpty() && !isLeashed() && player.getPassengers().size() < 3) {
+                if (!level.isClientSide && startRiding(player, true)) {
                     setOrderedToSit(false);
                     AddPassengerPacket.send(this, player);
                 }
@@ -169,8 +151,7 @@ public class RoostStalker extends TameableDragonEntity
                 return success;
             }
 
-            if ((!stack.isEmpty() && !isFood(stack)) || !heldItem.isEmpty())
-            {
+            if ((!stack.isEmpty() && !isFood(stack)) || !heldItem.isEmpty()) {
                 setStackInSlot(ITEM_SLOT, stack);
                 player.setItemInHand(hand, heldItem);
 
@@ -182,10 +163,8 @@ public class RoostStalker extends TameableDragonEntity
     }
 
     @Override
-    public void doSpecialEffects()
-    {
-        if (getVariant() == -1 && tickCount % 25 == 0)
-        {
+    public void doSpecialEffects() {
+        if (getVariant() == -1 && tickCount % 25 == 0) {
             double x = getX() + (Mafs.nextDouble(getRandom()) * 0.7d);
             double y = getY() + (getRandom().nextDouble() * 0.5d);
             double z = getZ() + (Mafs.nextDouble(getRandom()) * 0.7d);
@@ -194,20 +173,17 @@ public class RoostStalker extends TameableDragonEntity
     }
 
     @Override
-    public void onInvContentsChanged(int slot, ItemStack stack, boolean onLoad)
-    {
+    public void onInvContentsChanged(int slot, ItemStack stack, boolean onLoad) {
         if (slot == ITEM_SLOT) setItem(stack);
     }
 
     @Override
-    public ItemStack getItemBySlot(EquipmentSlotType slot)
-    {
-        return slot == EquipmentSlotType.MAINHAND? getItem() : super.getItemBySlot(slot);
+    public ItemStack getItemBySlot(EquipmentSlotType slot) {
+        return slot == EquipmentSlotType.MAINHAND ? getItem() : super.getItemBySlot(slot);
     }
 
     @Override
-    public void applyStaffInfo(BookContainer container)
-    {
+    public void applyStaffInfo(BookContainer container) {
         super.applyStaffInfo(container);
 
         container.slot(BookContainer.accessorySlot(getInventory(), ITEM_SLOT, 0, 0, -15, DragonControlScreen.SADDLE_UV))
@@ -215,123 +191,103 @@ public class RoostStalker extends TameableDragonEntity
     }
 
     @Override
-    public boolean isInvulnerableTo(DamageSource source)
-    {
+    public boolean isInvulnerableTo(DamageSource source) {
         return source == DamageSource.DROWN || super.isInvulnerableTo(source);
     }
 
     @Override
-    public boolean isBreedingItem(ItemStack stack)
-    {
+    public boolean isBreedingItem(ItemStack stack) {
         return stack.getItem() == Items.GOLD_NUGGET;
     }
 
     @Override
-    public EntitySize getDimensions(Pose pose)
-    {
+    public EntitySize getDimensions(Pose pose) {
         return getType().getDimensions().scale(getScale());
     }
 
     @Override
-    public int determineVariant()
-    {
-        return getRandom().nextDouble() < 0.005? -1 : 0;
+    public int determineVariant() {
+        return getRandom().nextDouble() < 0.005 ? -1 : 0;
     }
 
     @Override
     // Override normal dragon body controller to allow rotations while sitting: its small enough for it, why not. :P
-    protected BodyController createBodyControl()
-    {
+    protected BodyController createBodyControl() {
         return new BodyController(this);
     }
 
-    public ItemStack getItem()
-    {
+    public ItemStack getItem() {
         return entityData.get(ITEM);
     }
 
-    public boolean hasItem()
-    {
+    public boolean hasItem() {
         return getItem() != ItemStack.EMPTY;
     }
 
-    public void setItem(ItemStack item)
-    {
+    public void setItem(ItemStack item) {
         entityData.set(ITEM, item);
         if (!item.isEmpty()) playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 0.5f, 1);
     }
 
-    public boolean isScavenging()
-    {
+    public boolean isScavenging() {
         return entityData.get(SCAVENGING);
     }
 
-    public void setScavenging(boolean b)
-    {
+    public void setScavenging(boolean b) {
         entityData.set(SCAVENGING, b);
     }
 
     @Override
-    public boolean canFly()
-    {
+    public boolean canFly() {
         return false;
     }
 
     @Override
-    public boolean defendsHome()
-    {
+    public boolean defendsHome() {
         return true;
     }
 
     @Nullable
     @Override
-    protected SoundEvent getAmbientSound()
-    {
+    protected SoundEvent getAmbientSound() {
         return WRSounds.ENTITY_STALKER_IDLE.get();
     }
 
     @Nullable
     @Override
-    protected SoundEvent getHurtSound(DamageSource damageSourceIn)
-    {
+    protected SoundEvent getHurtSound(DamageSource damageSourceIn) {
         return WRSounds.ENTITY_STALKER_HURT.get();
     }
 
     @Nullable
     @Override
-    protected SoundEvent getDeathSound()
-    {
+    protected SoundEvent getDeathSound() {
         return WRSounds.ENTITY_STALKER_DEATH.get();
     }
 
     @Override
-    public float getSoundVolume()
-    {
+    public float getSoundVolume() {
         return 0.8f;
     }
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    public boolean isFood(ItemStack stack)
-    {
+    public boolean isFood(ItemStack stack) {
         return stack.getItem().isEdible() && stack.getItem().getFoodProperties().isMeat();
     }
 
     @Override
-    public DragonInventory createInv()
-    {
+    public DragonInventory createInv() {
         return new DragonInventory(this, 1);
     }
 
-    public static void setSpawnBiomes(BiomeLoadingEvent event)
-    {
+    public static void setSpawnBiomes(BiomeLoadingEvent event) {
         Biome.Category category = event.getCategory();
         if (category == Biome.Category.PLAINS || category == Biome.Category.FOREST || category == Biome.Category.EXTREME_HILLS)
             event.getSpawns().addSpawn(EntityClassification.CREATURE, new MobSpawnInfo.Spawners(WREntities.ROOSTSTALKER.get(), 7, 2, 9));
     }
 
-    public static AttributeModifierMap.MutableAttribute getAttributeMap()
-    {
+    public static AttributeModifierMap.MutableAttribute getAttributeMap() {
         return MobEntity.createMobAttributes()
                 .add(MAX_HEALTH, 8)
                 .add(MOVEMENT_SPEED, 0.285)
