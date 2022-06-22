@@ -1,4 +1,4 @@
-package com.github.wolfshotz.wyrmroost.entities.dragon;
+package com.github.wolfshotz.wyrmroost.entities.dragon.impl.drake.overworld;
 
 import com.github.wolfshotz.wyrmroost.WRConfig;
 import com.github.wolfshotz.wyrmroost.client.ClientEvents;
@@ -7,6 +7,7 @@ import com.github.wolfshotz.wyrmroost.client.screen.DragonControlScreen;
 import com.github.wolfshotz.wyrmroost.client.screen.widgets.CollapsibleWidget;
 import com.github.wolfshotz.wyrmroost.containers.BookContainer;
 import com.github.wolfshotz.wyrmroost.containers.util.DynamicSlot;
+import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.DragonInventory;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.*;
 import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
@@ -57,9 +58,9 @@ import static net.minecraft.entity.ai.attributes.Attributes.*;
 /**
  * Created by com.github.WolfShotz 7/10/19 - 22:18
  */
-public class OverworldDrakeEntity extends TameableDragonEntity
+public class OverworldDrake extends TameableDragonEntity
 {
-    private static final EntitySerializer<OverworldDrakeEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
+    private static final EntitySerializer<OverworldDrake> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping));
@@ -70,24 +71,24 @@ public class OverworldDrakeEntity extends TameableDragonEntity
     public static final int CHEST_SLOT = 2;
 
     // Dragon Entity Data
-    private static final DataParameter<Boolean> SADDLED = EntityDataManager.defineId(OverworldDrakeEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> SADDLED = EntityDataManager.defineId(OverworldDrake.class, DataSerializers.BOOLEAN);
 
     // Dragon Entity Animations
-    public static final Animation GRAZE_ANIMATION = LogicalAnimation.create(35, OverworldDrakeEntity::grazeAnimation, () -> OverworldDrakeModel::grazeAnimation);
-    public static final Animation HORN_ATTACK_ANIMATION = LogicalAnimation.create(15, OverworldDrakeEntity::hornAttackAnimation, () -> OverworldDrakeModel::hornAttackAnimation);
-    public static final Animation ROAR_ANIMATION = LogicalAnimation.create(86, OverworldDrakeEntity::hornAttackAnimation, () -> OverworldDrakeModel::roarAnimation);
+    public static final Animation GRAZE_ANIMATION = LogicalAnimation.create(35, OverworldDrake::grazeAnimation, () -> OverworldDrakeModel::grazeAnimation);
+    public static final Animation HORN_ATTACK_ANIMATION = LogicalAnimation.create(15, OverworldDrake::hornAttackAnimation, () -> OverworldDrakeModel::hornAttackAnimation);
+    public static final Animation ROAR_ANIMATION = LogicalAnimation.create(86, OverworldDrake::hornAttackAnimation, () -> OverworldDrakeModel::roarAnimation);
     public static final Animation[] ANIMATIONS = new Animation[]{GRAZE_ANIMATION, HORN_ATTACK_ANIMATION, ROAR_ANIMATION};
 
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public LivingEntity thrownPassenger;
 
-    public OverworldDrakeEntity(EntityType<? extends OverworldDrakeEntity> drake, World level)
+    public OverworldDrake(EntityType<? extends OverworldDrake> drake, World level)
     {
         super(drake, level);
     }
 
     @Override
-    public EntitySerializer<OverworldDrakeEntity> getSerializer()
+    public EntitySerializer<OverworldDrake> getSerializer()
     {
         return SERIALIZER;
     }
@@ -321,7 +322,7 @@ public class OverworldDrakeEntity extends TameableDragonEntity
         setSprinting(flag);
 
         if (flag && prev != target && target.getType() == EntityType.PLAYER && !isTame() && noAnimations())
-            AnimationPacket.send(this, OverworldDrakeEntity.ROAR_ANIMATION);
+            AnimationPacket.send(this, OverworldDrake.ROAR_ANIMATION);
     }
 
     @Override

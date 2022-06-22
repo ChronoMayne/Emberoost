@@ -1,10 +1,12 @@
-package com.github.wolfshotz.wyrmroost.entities.dragon;
+package com.github.wolfshotz.wyrmroost.entities.dragon.impl.drake.dragonfruit;
 
 import com.github.wolfshotz.wyrmroost.client.ClientEvents;
 import com.github.wolfshotz.wyrmroost.client.model.entity.DragonFruitDrakeModel;
+import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DragonBreedGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.MoveToHomeGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.drake.dragonfruit.goals.DragonFruitDrakeMoveToCropsGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragonegg.DragonEggProperties;
 import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
@@ -49,31 +51,31 @@ import java.util.Random;
 import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
-public class DragonFruitDrakeEntity extends TameableDragonEntity implements IForgeShearable
+public class DragonFruitDrake extends TameableDragonEntity implements IForgeShearable
 {
-    private static final EntitySerializer<DragonFruitDrakeEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
+    private static final EntitySerializer<DragonFruitDrake> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)
-            .track(EntitySerializer.INT, "ShearTimer", DragonFruitDrakeEntity::getShearedCooldown, DragonFruitDrakeEntity::setShearedCooldown));
+            .track(EntitySerializer.INT, "ShearTimer", DragonFruitDrake::getShearedCooldown, DragonFruitDrake::setShearedCooldown));
 
-    private static final int CROP_GROWTH_RADIUS = 5;
-    private static final int CROP_GROWTH_TIME = 1200; // 1 minute
+    public static final int CROP_GROWTH_RADIUS = 5;
+    public static final int CROP_GROWTH_TIME = 1200; // 1 minute
 
-    public static final Animation BITE_ANIMATION = LogicalAnimation.create(15, DragonFruitDrakeEntity::biteAnimation, () -> DragonFruitDrakeModel::biteAnimation);
+    public static final Animation BITE_ANIMATION = LogicalAnimation.create(15, DragonFruitDrake::biteAnimation, () -> DragonFruitDrakeModel::biteAnimation);
     public static final Animation[] ANIMATIONS = new Animation[] {BITE_ANIMATION};
 
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     private int shearCooldownTime, napTime, growCropsTime;
     private TemptGoal temptGoal;
 
-    public DragonFruitDrakeEntity(EntityType<? extends DragonFruitDrakeEntity> dragon, World level)
+    public DragonFruitDrake(EntityType<? extends DragonFruitDrake> dragon, World level)
     {
         super(dragon, level);
     }
 
     @Override
-    public EntitySerializer<DragonFruitDrakeEntity> getSerializer()
+    public EntitySerializer<DragonFruitDrake> getSerializer()
     {
         return SERIALIZER;
     }
@@ -93,7 +95,7 @@ public class DragonFruitDrakeEntity extends TameableDragonEntity implements IFor
     {
         super.registerGoals();
 
-        goalSelector.addGoal(3, new MoveToCropsGoal());
+        goalSelector.addGoal(3, new DragonFruitDrakeMoveToCropsGoal(this));
         goalSelector.addGoal(4, new MoveToHomeGoal(this));
         goalSelector.addGoal(5, new DragonBreedGoal(this));
         goalSelector.addGoal(6, new MeleeAttackGoal(this, 1.3, false));
@@ -386,51 +388,7 @@ public class DragonFruitDrakeEntity extends TameableDragonEntity implements IFor
         return block instanceof IGrowable && !(block instanceof GrassBlock);
     }
 
-    // todo: completely remake this so it instead looks for random block in range instead of closest,and checks to see if block is in range rather than being directly ontop of it
-    private class MoveToCropsGoal extends MoveToBlockGoal
-    {
-        public MoveToCropsGoal()
-        {
-            super(DragonFruitDrakeEntity.this, 1, CROP_GROWTH_RADIUS * 2);
-            setFlags(EnumSet.of(Flag.MOVE, Flag.JUMP, Flag.LOOK));
-        }
-
-        @Override
-        public boolean canUse()
-        {
-            return growCropsTime >= 0 && findNearestBlock();
-        }
-
-        @Override
-        protected int nextStartTick(CreatureEntity creature)
-        {
-            return 100;
-        }
-
-        @Override
-        public boolean canContinueToUse()
-        {
-            return growCropsTime >= 0;
-        }
-
-        @Override
-        public void tick()
-        {
-            super.tick();
-            getLookControl().setLookAt(blockPos.getX(), blockPos.getY(), blockPos.getY());
-            if (tryTicks >= 200 && getRandom().nextInt(tryTicks) >= 100)
-            {
-                tryTicks = 0;
-                findNearestBlock();
-            }
-        }
-
-        @Override
-        protected boolean isValidTarget(IWorldReader level, BlockPos pos)
-        {
-            BlockState state = level.getBlockState(pos);
-            Block block = state.getBlock();
-            return !pos.equals(blockPos) && isCrop(block) && ((IGrowable) block).isValidBonemealTarget(level, pos, state, false);
-        }
+    public int getGrowCropsTime() {
+        return growCropsTime;
     }
 }

@@ -3,7 +3,7 @@ package com.github.wolfshotz.wyrmroost.client.model.entity;
 import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.client.model.WREntityModel;
 import com.github.wolfshotz.wyrmroost.client.model.WRModelRenderer;
-import com.github.wolfshotz.wyrmroost.entities.dragon.LesserDesertwyrmEntity;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyrm.desert.LesserDesertwyrm;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.util.ResourceLocation;
@@ -12,7 +12,7 @@ import net.minecraft.util.ResourceLocation;
  * WR Lesser Desertwyrm - Ukan
  * Created using Tabula 7.0.1
  */
-public class LesserDesertwyrmModel extends WREntityModel<LesserDesertwyrmEntity>
+public class LesserDesertwyrmModel extends WREntityModel<LesserDesertwyrm>
 {
     private final ResourceLocation TEXTURE = Wyrmroost.id(DragonEntityModel.FOLDER + "lesser_desertwyrm/body.png");
 
@@ -111,13 +111,13 @@ public class LesserDesertwyrmModel extends WREntityModel<LesserDesertwyrmEntity>
     }
 
     @Override
-    public ResourceLocation getTexture(LesserDesertwyrmEntity entity)
+    public ResourceLocation getTexture(LesserDesertwyrm entity)
     {
         return TEXTURE;
     }
 
     @Override
-    public float getShadowRadius(LesserDesertwyrmEntity entity)
+    public float getShadowRadius(LesserDesertwyrm entity)
     {
         return 0;
     }
@@ -129,7 +129,7 @@ public class LesserDesertwyrmModel extends WREntityModel<LesserDesertwyrmEntity>
     }
 
     @Override
-    public void setupAnim(LesserDesertwyrmEntity entity, float limbSwing, float limbSwingAmount, float bob, float netHeadYaw, float headPitch)
+    public void setupAnim(LesserDesertwyrm entity, float limbSwing, float limbSwingAmount, float bob, float netHeadYaw, float headPitch)
     {
         animator().tick(entity, this, partialTicks);
         reset();
@@ -146,7 +146,7 @@ public class LesserDesertwyrmModel extends WREntityModel<LesserDesertwyrmEntity>
             neck.y = bob(0.45f - globalSpeed, 0.15f, false, bob, 0.5f);
         }
 
-        if (entity.getAnimation() != LesserDesertwyrmEntity.BITE_ANIMATION)
+        if (entity.getAnimation() != LesserDesertwyrm.BITE_ANIMATION)
         {
             walk(jaw, 0.45f - globalSpeed, 0.1f, false, 0, 0, bob, 0.5f);
             walk(head, 0.45f - globalSpeed, 0.1f, true, 0, (entity.isBurrowed()? 0f : 0.5f), bob, 0.5f);

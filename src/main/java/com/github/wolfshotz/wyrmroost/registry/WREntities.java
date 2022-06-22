@@ -11,8 +11,13 @@ import com.github.wolfshotz.wyrmroost.client.render.entity.EmptyRenderer;
 import com.github.wolfshotz.wyrmroost.client.render.entity.projectile.BreathWeaponRenderer;
 import com.github.wolfshotz.wyrmroost.client.render.entity.projectile.GeodeTippedArrowRenderer;
 import com.github.wolfshotz.wyrmroost.entities.dragon.*;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.drake.dragonfruit.DragonFruitDrake;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.drake.overworld.OverworldDrake;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.glider.silver.SilverGlider;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.ButterflyLeviathan;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred.RoyalRedDragon;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.stalker.roost.RoostStalker;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyrm.desert.LesserDesertwyrm;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.CanariWyvern;
 import com.github.wolfshotz.wyrmroost.entities.dragonegg.DragonEggEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragonegg.DragonEggProperties;
@@ -57,18 +62,18 @@ public class WREntities<E extends Entity> extends EntityType<E>
 {
     public static final DeferredRegister<EntityType<?>> REGISTRY = DeferredRegister.create(ForgeRegistries.ENTITIES, Wyrmroost.MOD_ID);
 
-    public static final RegistryObject<EntityType<LesserDesertwyrmEntity>> LESSER_DESERTWYRM = creature("lesser_desertwyrm", LesserDesertwyrmEntity::new)
+    public static final RegistryObject<EntityType<LesserDesertwyrm>> LESSER_DESERTWYRM = creature("lesser_desertwyrm", LesserDesertwyrm::new)
             .size(0.6f, 0.2f)
-            .attributes(LesserDesertwyrmEntity::getAttributeMap)
-            .spawnPlacement(ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, LesserDesertwyrmEntity::getSpawnPlacement)
+            .attributes(LesserDesertwyrm::getAttributeMap)
+            .spawnPlacement(ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, LesserDesertwyrm::getSpawnPlacement)
             .spawnEgg(0xD6BCBC, 0xDEB6C7)
             .renderModel(() -> LesserDesertwyrmModel::new)
             .packetInterval(5)
             .build();
 
-    public static final RegistryObject<EntityType<OverworldDrakeEntity>> OVERWORLD_DRAKE = creature("overworld_drake", OverworldDrakeEntity::new)
+    public static final RegistryObject<EntityType<OverworldDrake>> OVERWORLD_DRAKE = creature("overworld_drake", OverworldDrake::new)
             .size(2.376f, 2.58f)
-            .attributes(OverworldDrakeEntity::getAttributeMap)
+            .attributes(OverworldDrake::getAttributeMap)
             .spawnPlacement()
             .spawnEgg(0x788716, 0x3E623E)
             .dragonEgg(new DragonEggProperties(0.35f, 0.6f, 18000))
@@ -76,19 +81,19 @@ public class WREntities<E extends Entity> extends EntityType<E>
             .trackingRange(10)
             .build();
 
-    public static final RegistryObject<EntityType<SilverGliderEntity>> SILVER_GLIDER = creature("silver_glider", SilverGliderEntity::new)
+    public static final RegistryObject<EntityType<SilverGlider>> SILVER_GLIDER = creature("silver_glider", SilverGlider::new)
             .size(1.5f, 0.75f)
-            .attributes(SilverGliderEntity::getAttributeMap)
-            .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, SilverGliderEntity::getSpawnPlacement)
+            .attributes(SilverGlider::getAttributeMap)
+            .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, SilverGlider::getSpawnPlacement)
             .spawnEgg(0xC8C8C8, 0xC4C4C4)
             .dragonEgg(new DragonEggProperties(0.2f, 0.35f, 12000))
             .renderModel(() -> SilverGliderModel::new)
             .trackingRange(8)
             .build();
 
-    public static final RegistryObject<EntityType<RoostStalkerEntity>> ROOSTSTALKER = creature("roost_stalker", RoostStalkerEntity::new)
+    public static final RegistryObject<EntityType<RoostStalker>> ROOSTSTALKER = creature("roost_stalker", RoostStalker::new)
             .size(0.65f, 0.5f)
-            .attributes(RoostStalkerEntity::getAttributeMap)
+            .attributes(RoostStalker::getAttributeMap)
             .spawnPlacement()
             .spawnEgg(0x52100D, 0x959595)
             .dragonEgg(new DragonEggProperties(0.175f, 0.3f, 6000))
@@ -105,10 +110,10 @@ public class WREntities<E extends Entity> extends EntityType<E>
             .trackingRange(8)
             .build();
 
-    public static final RegistryObject<EntityType<DragonFruitDrakeEntity>> DRAGON_FRUIT_DRAKE = creature("dragon_fruit_drake", DragonFruitDrakeEntity::new)
+    public static final RegistryObject<EntityType<DragonFruitDrake>> DRAGON_FRUIT_DRAKE = creature("dragon_fruit_drake", DragonFruitDrake::new)
             .size(1.5f, 1.9f)
-            .attributes(DragonFruitDrakeEntity::getAttributeMap)
-            .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, DragonFruitDrakeEntity::getSpawnPlacement)
+            .attributes(DragonFruitDrake::getAttributeMap)
+            .spawnPlacement(NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, DragonFruitDrake::getSpawnPlacement)
             .spawnEgg(0xe05c9a, 0x788716)
             .dragonEgg(new DragonEggProperties(0.25f, 0.35f, 9600))
             .renderModel(() -> DragonFruitDrakeModel::new)

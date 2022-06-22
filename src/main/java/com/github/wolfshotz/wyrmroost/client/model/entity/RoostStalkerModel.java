@@ -2,7 +2,7 @@ package com.github.wolfshotz.wyrmroost.client.model.entity;
 
 import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.client.model.WRModelRenderer;
-import com.github.wolfshotz.wyrmroost.entities.dragon.RoostStalkerEntity;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.stalker.roost.RoostStalker;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
@@ -20,7 +20,7 @@ import net.minecraft.util.math.vector.Vector3f;
  * Roost stalker - nova
  * Created using Tabula 7.0.1
  */
-public class RoostStalkerModel extends DragonEntityModel<RoostStalkerEntity>
+public class RoostStalkerModel extends DragonEntityModel<RoostStalker>
 {
     public static final ResourceLocation BODY = texture("body.png");
     public static final ResourceLocation ALBINO = texture("body_spe.png");
@@ -170,19 +170,19 @@ public class RoostStalkerModel extends DragonEntityModel<RoostStalkerEntity>
     }
 
     @Override
-    public ResourceLocation getTexture(RoostStalkerEntity entity)
+    public ResourceLocation getTexture(RoostStalker entity)
     {
         return entity.getVariant() == -1? ALBINO : BODY;
     }
 
     @Override
-    public float getShadowRadius(RoostStalkerEntity entity)
+    public float getShadowRadius(RoostStalker entity)
     {
         return 0.5f;
     }
 
     @Override
-    public void scale(RoostStalkerEntity entity, MatrixStack ms, float partialTicks)
+    public void scale(RoostStalker entity, MatrixStack ms, float partialTicks)
     {
         super.scale(entity, ms, partialTicks);
         ms.scale(0.625f, 0.625f, 0.625f);
@@ -196,13 +196,13 @@ public class RoostStalkerModel extends DragonEntityModel<RoostStalkerEntity>
     }
 
     @Override
-    public void postProcess(RoostStalkerEntity entity, MatrixStack ms, IRenderTypeBuffer buffer, int light, float limbSwing, float limbSwingAmount, float age, float yaw, float pitch, float partialTicks)
+    public void postProcess(RoostStalker entity, MatrixStack ms, IRenderTypeBuffer buffer, int light, float limbSwing, float limbSwingAmount, float age, float yaw, float pitch, float partialTicks)
     {
         if (!entity.isSleeping()) renderEyes(entity.getVariant() == -1? ALBINO_EYES : EYES, ms, buffer);
         renderMouthItem(entity, ms, buffer, light);
     }
 
-    private void renderMouthItem(RoostStalkerEntity entity, MatrixStack ms, IRenderTypeBuffer buffer, int light)
+    private void renderMouthItem(RoostStalker entity, MatrixStack ms, IRenderTypeBuffer buffer, int light)
     {
         ItemStack stack = entity.getItem();
 
@@ -234,7 +234,7 @@ public class RoostStalkerModel extends DragonEntityModel<RoostStalkerEntity>
     }
 
     @Override
-    public void setupAnim(RoostStalkerEntity stalker, float limbSwing, float limbSwingAmount, float bob, float yaw, float pitch)
+    public void setupAnim(RoostStalker stalker, float limbSwing, float limbSwingAmount, float bob, float yaw, float pitch)
     {
         reset();
 

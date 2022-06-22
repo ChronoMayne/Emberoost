@@ -5,6 +5,7 @@ import com.github.wolfshotz.wyrmroost.client.ClientEvents;
 import com.github.wolfshotz.wyrmroost.client.render.DebugRendering;
 import com.github.wolfshotz.wyrmroost.client.sound.FlyingSound;
 import com.github.wolfshotz.wyrmroost.containers.BookContainer;
+import com.github.wolfshotz.wyrmroost.entities.BasicTameableEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.DragonInventory;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.*;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRSitGoal;
@@ -88,7 +89,7 @@ import static net.minecraft.entity.ai.attributes.Attributes.*;
  * Created by com.github.WolfShotz 7/10/19 - 21:36
  * This is where the magic happens. Here be our Dragons!
  */
-public abstract class TameableDragonEntity extends TameableEntity implements IAnimatable, INamedContainerProvider {
+public abstract class TameableDragonEntity extends BasicTameableEntity implements IAnimatable, INamedContainerProvider {
     private static final UUID SCALE_MOD_UUID = UUID.fromString("81a0addd-edad-47f1-9aa7-4d76774e055a");
 
     @Deprecated // https://github.com/MinecraftForge/MinecraftForge/issues/7622

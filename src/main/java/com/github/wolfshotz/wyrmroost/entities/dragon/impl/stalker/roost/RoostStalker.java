@@ -1,12 +1,14 @@
-package com.github.wolfshotz.wyrmroost.entities.dragon;
+package com.github.wolfshotz.wyrmroost.entities.dragon.impl.stalker.roost;
 
 import com.github.wolfshotz.wyrmroost.client.screen.DragonControlScreen;
 import com.github.wolfshotz.wyrmroost.containers.BookContainer;
+import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.DragonInventory;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DefendHomeGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DragonBreedGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.MoveToHomeGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.stalker.roost.goals.RoostStalkerScavengeGoal;
 import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
@@ -14,9 +16,6 @@ import com.github.wolfshotz.wyrmroost.network.packets.AddPassengerPacket;
 import com.github.wolfshotz.wyrmroost.registry.WREntities;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.controller.BodyController;
@@ -26,7 +25,6 @@ import net.minecraft.entity.passive.RabbitEntity;
 import net.minecraft.entity.passive.TurtleEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -34,11 +32,7 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.particles.ParticleTypes;
-import net.minecraft.tileentity.ChestTileEntity;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.MobSpawnInfo;
@@ -51,24 +45,24 @@ import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.SLEEP
 import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.VARIANT;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
-public class RoostStalkerEntity extends TameableDragonEntity
+public class RoostStalker extends TameableDragonEntity
 {
-    public static final EntitySerializer<RoostStalkerEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
+    public static final EntitySerializer<RoostStalker> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant));
 
     public static final int ITEM_SLOT = 0;
-    private static final DataParameter<ItemStack> ITEM = EntityDataManager.defineId(RoostStalkerEntity.class, DataSerializers.ITEM_STACK);
-    private static final DataParameter<Boolean> SCAVENGING = EntityDataManager.defineId(RoostStalkerEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<ItemStack> ITEM = EntityDataManager.defineId(RoostStalker.class, DataSerializers.ITEM_STACK);
+    private static final DataParameter<Boolean> SCAVENGING = EntityDataManager.defineId(RoostStalker.class, DataSerializers.BOOLEAN);
 
-    public RoostStalkerEntity(EntityType<? extends RoostStalkerEntity> stalker, World level)
+    public RoostStalker(EntityType<? extends RoostStalker> stalker, World level)
     {
         super(stalker, level);
         maxUpStep = 0;
     }
 
     @Override
-    public EntitySerializer<RoostStalkerEntity> getSerializer()
+    public EntitySerializer<RoostStalker> getSerializer()
     {
         return SERIALIZER;
     }
@@ -93,7 +87,7 @@ public class RoostStalkerEntity extends TameableDragonEntity
         goalSelector.addGoal(5, new MoveToHomeGoal(this));
         goalSelector.addGoal(6, new WRFollowOwnerGoal(this));
         goalSelector.addGoal(7, new DragonBreedGoal(this));
-        goalSelector.addGoal(9, new ScavengeGoal(1.1d));
+        goalSelector.addGoal(9, new RoostStalkerScavengeGoal(this, 1.1d));
         goalSelector.addGoal(10, new WaterAvoidingRandomWalkingGoal(this, 1));
         goalSelector.addGoal(11, new LookAtGoal(this, LivingEntity.class, 5f));
         goalSelector.addGoal(12, new LookRandomlyGoal(this));
@@ -256,7 +250,7 @@ public class RoostStalkerEntity extends TameableDragonEntity
         return entityData.get(ITEM);
     }
 
-    private boolean hasItem()
+    public boolean hasItem()
     {
         return getItem() != ItemStack.EMPTY;
     }
@@ -344,109 +338,4 @@ public class RoostStalkerEntity extends TameableDragonEntity
                 .add(ATTACK_DAMAGE, 2);
     }
 
-    class ScavengeGoal extends MoveToBlockGoal
-    {
-        private IInventory chest;
-        private int searchDelay = 20 + getRandom().nextInt(40) + 5;
-
-        public ScavengeGoal(double speed)
-        {
-            super(RoostStalkerEntity.this, speed, 16);
-        }
-
-        @Override
-        public boolean canUse()
-        {
-            boolean flag = !isTame() && !hasItem() && super.canUse();
-            if (flag) return (chest = getInventoryAtPosition()) != null && !chest.isEmpty();
-            else return false;
-        }
-
-        @Override
-        public boolean canContinueToUse()
-        {
-            return !hasItem() && chest != null && super.canContinueToUse();
-        }
-
-        @Override
-        public void tick()
-        {
-            super.tick();
-
-            if (isReachedTarget())
-            {
-                if (hasItem()) return;
-
-                setScavenging(true);
-
-                if (chest == null) return;
-                if (chest instanceof ChestTileEntity && ((ChestTileEntity) chest).openCount == 0)
-                    interactChest(chest, true);
-                if (!chest.isEmpty() && --searchDelay <= 0)
-                {
-                    int index = getRandom().nextInt(chest.getContainerSize());
-                    ItemStack stack = chest.getItem(index);
-
-                    if (!stack.isEmpty())
-                    {
-                        stack = chest.removeItemNoUpdate(index);
-                        getInventory().insertItem(ITEM_SLOT, stack, false);
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void stop()
-        {
-            super.stop();
-            interactChest(chest, false);
-            searchDelay = 20 + getRandom().nextInt(40) + 5;
-            setScavenging(false);
-        }
-
-        /**
-         * Returns the IInventory (if applicable) of the TileEntity at the specified position
-         */
-        @Nullable
-        public IInventory getInventoryAtPosition()
-        {
-            IInventory inv = null;
-            BlockState blockstate = level.getBlockState(blockPos);
-            Block block = blockstate.getBlock();
-            if (blockstate.hasTileEntity())
-            {
-                TileEntity tileentity = level.getBlockEntity(blockPos);
-                if (tileentity instanceof IInventory)
-                {
-                    inv = (IInventory) tileentity;
-                    if (inv instanceof ChestTileEntity && block instanceof ChestBlock)
-                        inv = ChestBlock.getContainer((ChestBlock) block, blockstate, level, blockPos, true);
-                }
-            }
-
-            return inv;
-        }
-
-        /**
-         * Return true to set given position as destination
-         */
-        @Override
-        protected boolean isValidTarget(IWorldReader world, BlockPos pos)
-        {
-            return level.getBlockEntity(pos) instanceof IInventory;
-        }
-
-        /**
-         * Used to handle the chest opening animation when being used by the scavenger
-         */
-        private void interactChest(IInventory intentory, boolean open)
-        {
-            if (!(intentory instanceof ChestTileEntity)) return; // not a chest, ignore it
-            ChestTileEntity chest = (ChestTileEntity) intentory;
-
-            chest.openCount = open? 1 : 0;
-            chest.getLevel().blockEvent(chest.getBlockPos(), chest.getBlockState().getBlock(), 1, chest.openCount);
-        }
-    }
 }

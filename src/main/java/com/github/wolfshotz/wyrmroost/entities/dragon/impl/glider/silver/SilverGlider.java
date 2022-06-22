@@ -1,9 +1,11 @@
-package com.github.wolfshotz.wyrmroost.entities.dragon;
+package com.github.wolfshotz.wyrmroost.entities.dragon.impl.glider.silver;
 
+import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.DragonBreedGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.FlyerWanderGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRAvoidEntityGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
+import com.github.wolfshotz.wyrmroost.entities.dragon.impl.glider.silver.goals.SilverGliderSwoopGoal;
 import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.network.packets.SGGlidePacket;
@@ -14,7 +16,6 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
-import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.LookAtGoal;
 import net.minecraft.entity.ai.goal.LookRandomlyGoal;
 import net.minecraft.entity.ai.goal.TemptGoal;
@@ -31,18 +32,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.Heightmap;
 
 import javax.annotation.Nullable;
-import java.util.EnumSet;
 import java.util.Random;
 
 import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
-public class SilverGliderEntity extends TameableDragonEntity
+public class SilverGlider extends TameableDragonEntity
 {
-    private static final EntitySerializer<SilverGliderEntity> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
+    private static final EntitySerializer<SilverGlider> SERIALIZER = EntityConstants.TAMEABLE_DRAGON_SERIALIZER.concat(b -> b
             .track(EntitySerializer.BOOL, "Gender", TameableDragonEntity::isMale, TameableDragonEntity::setGender)
             .track(EntitySerializer.INT, "Variant", TameableDragonEntity::getVariant, TameableDragonEntity::setVariant)
             .track(EntitySerializer.BOOL, "Sleeping", TameableDragonEntity::isSleeping, TameableDragonEntity::setSleeping));
@@ -53,13 +52,13 @@ public class SilverGliderEntity extends TameableDragonEntity
     public TemptGoal temptGoal;
     public boolean isGliding; // controlled by player-gliding.
 
-    public SilverGliderEntity(EntityType<? extends TameableDragonEntity> dragon, World level)
+    public SilverGlider(EntityType<? extends TameableDragonEntity> dragon, World level)
     {
         super(dragon, level);
     }
 
     @Override
-    public EntitySerializer<SilverGliderEntity> getSerializer()
+    public EntitySerializer<SilverGlider> getSerializer()
     {
         return SERIALIZER;
     }
@@ -83,7 +82,7 @@ public class SilverGliderEntity extends TameableDragonEntity
         goalSelector.addGoal(4, new WRAvoidEntityGoal<>(this, PlayerEntity.class, 10f, 0.8));
         goalSelector.addGoal(5, new DragonBreedGoal(this));
         goalSelector.addGoal(6, new WRFollowOwnerGoal(this));
-        goalSelector.addGoal(7, new SwoopGoal());
+        goalSelector.addGoal(7, new SilverGliderSwoopGoal(this));
         goalSelector.addGoal(8, new FlyerWanderGoal(this, 1));
         goalSelector.addGoal(9, new LookAtGoal(this, LivingEntity.class, 7f));
         goalSelector.addGoal(10, new LookRandomlyGoal(this));
@@ -256,7 +255,7 @@ public class SilverGliderEntity extends TameableDragonEntity
         return stack.getItem().is(ItemTags.FISHES);
     }
 
-    public static boolean getSpawnPlacement(EntityType<SilverGliderEntity> fEntityType, IServerWorld level, SpawnReason spawnReason, BlockPos blockPos, Random random)
+    public static boolean getSpawnPlacement(EntityType<SilverGlider> fEntityType, IServerWorld level, SpawnReason spawnReason, BlockPos blockPos, Random random)
     {
         if (spawnReason == SpawnReason.SPAWNER) return true;
         Block block = level.getBlockState(blockPos.below()).getBlock();
@@ -275,39 +274,5 @@ public class SilverGliderEntity extends TameableDragonEntity
                 .add(MAX_HEALTH, 20)
                 .add(MOVEMENT_SPEED, 0.23)
                 .add(FLYING_SPEED, 0.12);
-    }
-
-    public class SwoopGoal extends Goal
-    {
-        private BlockPos pos;
-
-        public SwoopGoal()
-        {
-            setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-        }
-
-        @Override
-        public boolean canUse()
-        {
-            if (!isFlying()) return false;
-            if (isRiding()) return false;
-            if (getRandom().nextDouble() > 0.001) return false;
-            if (level.getFluidState(this.pos = level.getHeightmapPos(Heightmap.Type.WORLD_SURFACE, blockPosition()).below()).isEmpty())
-                return false;
-            return getY() - pos.getY() > 8;
-        }
-
-        @Override
-        public boolean canContinueToUse()
-        {
-            return blockPosition().distSqr(pos) > 8;
-        }
-
-        @Override
-        public void tick()
-        {
-            if (getNavigation().isDone()) getNavigation().moveTo(pos.getX(), pos.getY() + 2, pos.getZ(), 1);
-            getLookControl().setLookAt(pos.getX(), pos.getY() + 2, pos.getZ());
-        }
     }
 }
