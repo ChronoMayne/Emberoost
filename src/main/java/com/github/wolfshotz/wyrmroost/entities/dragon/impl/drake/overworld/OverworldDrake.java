@@ -2,7 +2,6 @@ package com.github.wolfshotz.wyrmroost.entities.dragon.impl.drake.overworld;
 
 import com.github.wolfshotz.wyrmroost.WRConfig;
 import com.github.wolfshotz.wyrmroost.client.ClientEvents;
-import com.github.wolfshotz.wyrmroost.client.model.entity.OverworldDrakeModel;
 import com.github.wolfshotz.wyrmroost.client.screen.DragonControlScreen;
 import com.github.wolfshotz.wyrmroost.client.screen.widgets.CollapsibleWidget;
 import com.github.wolfshotz.wyrmroost.containers.BookContainer;
@@ -10,10 +9,10 @@ import com.github.wolfshotz.wyrmroost.containers.util.DynamicSlot;
 import com.github.wolfshotz.wyrmroost.entities.dragon.TameableDragonEntity;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.DragonInventory;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.*;
-import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
@@ -23,7 +22,6 @@ import com.github.wolfshotz.wyrmroost.util.LerpedFloat;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import com.github.wolfshotz.wyrmroost.util.ModUtils;
 import com.github.wolfshotz.wyrmroost.util.animation.Animation;
-import com.github.wolfshotz.wyrmroost.util.animation.LogicalAnimation;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -36,7 +34,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.network.play.server.SEntityVelocityPacket;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
@@ -53,49 +50,36 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.ARMOR;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 
 /**
  * Created by com.github.WolfShotz 7/10/19 - 22:18
  */
 public class OverworldDrake extends TameableDragonEntity {
 
-    // inventory slot constants
-    public static final int SADDLE_SLOT = 0;
-    public static final int ARMOR_SLOT = 1;
-    public static final int CHEST_SLOT = 2;
-
-    // Dragon Entity Data
-    private static final DataParameter<Boolean> SADDLED = EntityDataManager.defineId(OverworldDrake.class, DataSerializers.BOOLEAN);
-
-    // Dragon Entity Animations
-    public static final Animation GRAZE_ANIMATION = LogicalAnimation.create(35, OverworldDrake::grazeAnimation, () -> OverworldDrakeModel::grazeAnimation);
-    public static final Animation HORN_ATTACK_ANIMATION = LogicalAnimation.create(15, OverworldDrake::hornAttackAnimation, () -> OverworldDrakeModel::hornAttackAnimation);
-    public static final Animation ROAR_ANIMATION = LogicalAnimation.create(86, OverworldDrake::hornAttackAnimation, () -> OverworldDrakeModel::roarAnimation);
-    public static final Animation[] ANIMATIONS = new Animation[]{GRAZE_ANIMATION, HORN_ATTACK_ANIMATION, ROAR_ANIMATION};
-
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public LivingEntity thrownPassenger;
+    private final DataParameter<Boolean> saddledData;
 
     public OverworldDrake(EntityType<? extends OverworldDrake> drake, World level) {
         super(drake, level);
+        this.saddledData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
     }
 
     @Override
     public EntitySerializer<OverworldDrake> getSerializer() {
-        return EntitySerializerBuilder.getEntitySerializer(this.getClass(),EntitySerializerType.SLEEPING, EntitySerializerType.VARIANT, EntitySerializerType.GENDER);
+        return EntitySerializerBuilder.getEntitySerializer(this.getClass(), EntitySerializerType.SLEEPING, EntitySerializerType.VARIANT, EntitySerializerType.GENDER);
     }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(GENDER, false);
-        entityData.define(SLEEPING, false);
-        entityData.define(VARIANT, 0);
-        entityData.define(SADDLED, false);
-        entityData.define(ARMOR, ItemStack.EMPTY);
+        entityData.define(genderData, false);
+        entityData.define(sleepingData, false);
+        entityData.define(variantData, 0);
+        entityData.define(saddledData, false);
+        entityData.define(armorData, ItemStack.EMPTY);
     }
 
     @Override
@@ -108,7 +92,7 @@ public class OverworldDrake extends TameableDragonEntity {
         super.registerGoals();
 
         goalSelector.addGoal(4, new MoveToHomeGoal(this));
-        goalSelector.addGoal(5, new ControlledAttackGoal(this, 1.425, true, () -> AnimationPacket.send(this, HORN_ATTACK_ANIMATION)));
+        goalSelector.addGoal(5, new ControlledAttackGoal(this, 1.425, true, () -> AnimationPacket.send(this, OVERWORLD_DRAKE_HORN_ATTACK_ANIMATION)));
         goalSelector.addGoal(6, new WRFollowOwnerGoal(this));
         goalSelector.addGoal(7, new DragonBreedGoal(this));
         goalSelector.addGoal(8, new WaterAvoidingRandomWalkingGoal(this, 1));
@@ -136,7 +120,7 @@ public class OverworldDrake extends TameableDragonEntity {
         }
 
         if (!level.isClientSide && getTarget() == null && !isInSittingPose() && !isSleeping() && level.getBlockState(blockPosition().below()).getBlock() == Blocks.GRASS_BLOCK && getRandom().nextDouble() < (isBaby() || getHealth() < getMaxHealth() ? 0.005 : 0.001))
-            AnimationPacket.send(this, GRAZE_ANIMATION);
+            AnimationPacket.send(this, OVERWORLD_DRAKE_GRAZE_ANIMATION);
     }
 
     public void roarAnimation(int time) {
@@ -185,7 +169,7 @@ public class OverworldDrake extends TameableDragonEntity {
     public ActionResultType playerInteraction(PlayerEntity player, Hand hand, ItemStack stack) {
         if (stack.getItem() == Items.SADDLE && !isSaddled() && isJuvenile()) {
             if (!level.isClientSide) {
-                getInventory().insertItem(SADDLE_SLOT, stack.copy(), false);
+                getInventory().insertItem(OVERWORLD_DRAKE_SADDLE_SLOT, stack.copy(), false);
                 stack.shrink(1);
             }
             return ActionResultType.sidedSuccess(level.isClientSide);
@@ -225,15 +209,15 @@ public class OverworldDrake extends TameableDragonEntity {
     public void onInvContentsChanged(int slot, ItemStack stack, boolean onLoad) {
         boolean playSound = !stack.isEmpty() && !onLoad;
         switch (slot) {
-            case SADDLE_SLOT:
-                entityData.set(SADDLED, !stack.isEmpty());
+            case OVERWORLD_DRAKE_SADDLE_SLOT:
+                entityData.set(saddledData, !stack.isEmpty());
                 if (playSound) playSound(SoundEvents.HORSE_SADDLE, 1f, 1f);
                 break;
-            case ARMOR_SLOT:
+            case OVERWORLD_DRAKE_ARMOR_SLOT:
                 setArmor(stack);
                 if (playSound) playSound(SoundEvents.ARMOR_EQUIP_DIAMOND, 1f, 1f);
                 break;
-            case CHEST_SLOT:
+            case OVERWORLD_DRAKE_CHEST_SLOT:
                 if (playSound) playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 1f, 1f);
                 break;
         }
@@ -242,8 +226,8 @@ public class OverworldDrake extends TameableDragonEntity {
     @Override
     public void recievePassengerKeybind(int key, int mods, boolean pressed) {
         if (key == KeybindHandler.MOUNT_KEY && pressed && noAnimations()) {
-            if ((mods & GLFW.GLFW_MOD_CONTROL) != 0) setAnimation(ROAR_ANIMATION);
-            else setAnimation(HORN_ATTACK_ANIMATION);
+            if ((mods & GLFW.GLFW_MOD_CONTROL) != 0) setAnimation(OVERWORLD_DRAKE_ROAR_ANIMATION);
+            else setAnimation(OVERWORLD_DRAKE_HORN_ATTACK_ANIMATION);
         }
     }
 
@@ -268,9 +252,9 @@ public class OverworldDrake extends TameableDragonEntity {
                 .condition(this::hasChest);
         ModUtils.createContainerSlots(i, 3, 17, 12, 5, 3, DynamicSlot::new, chestWidget::addSlot);
 
-        container.slot(BookContainer.accessorySlot(i, ARMOR_SLOT, 15, -11, 22, DragonControlScreen.ARMOR_UV).only(DragonArmorItem.class))
-                .slot(BookContainer.accessorySlot(i, CHEST_SLOT, -15, -11, 22, DragonControlScreen.CHEST_UV).only(ChestBlock.class).limit(1).canTake(p -> i.isEmptyAfter(CHEST_SLOT)))
-                .slot(BookContainer.accessorySlot(i, SADDLE_SLOT, 0, -15, -7, DragonControlScreen.SADDLE_UV).only(Items.SADDLE))
+        container.slot(BookContainer.accessorySlot(i, OVERWORLD_DRAKE_ARMOR_SLOT, 15, -11, 22, DragonControlScreen.ARMOR_UV).only(DragonArmorItem.class))
+                .slot(BookContainer.accessorySlot(i, OVERWORLD_DRAKE_CHEST_SLOT, -15, -11, 22, DragonControlScreen.CHEST_UV).only(ChestBlock.class).limit(1).canTake(p -> i.isEmptyAfter(OVERWORLD_DRAKE_CHEST_SLOT)))
+                .slot(BookContainer.accessorySlot(i, OVERWORLD_DRAKE_SADDLE_SLOT, 0, -15, -7, DragonControlScreen.SADDLE_UV).only(Items.SADDLE))
                 .addAction(BookActions.TARGET)
                 .addCollapsible(chestWidget);
     }
@@ -285,12 +269,12 @@ public class OverworldDrake extends TameableDragonEntity {
         setSprinting(flag);
 
         if (flag && prev != target && target.getType() == EntityType.PLAYER && !isTame() && noAnimations())
-            AnimationPacket.send(this, OverworldDrake.ROAR_ANIMATION);
+            AnimationPacket.send(this, OVERWORLD_DRAKE_ROAR_ANIMATION);
     }
 
     @Override
     public boolean isImmobile() {
-        return getAnimation() == ROAR_ANIMATION || super.isImmobile();
+        return getAnimation() == OVERWORLD_DRAKE_ROAR_ANIMATION || super.isImmobile();
     }
 
     @Override
@@ -359,17 +343,17 @@ public class OverworldDrake extends TameableDragonEntity {
     }
 
     public boolean hasChest() {
-        return !getStackInSlot(CHEST_SLOT).isEmpty();
+        return !getStackInSlot(OVERWORLD_DRAKE_CHEST_SLOT).isEmpty();
     }
 
     public boolean isSaddled() {
-        return entityData.get(SADDLED);
+        return entityData.get(saddledData);
     }
 
     @Override
     public void dropStorage() {
         DragonInventory inv = getInventory();
-        for (int i = CHEST_SLOT + 1; i < inv.getSlots(); i++)
+        for (int i = OVERWORLD_DRAKE_CHEST_SLOT + 1; i < inv.getSlots(); i++)
             spawnAtLocation(inv.extractItem(i, 65, false), getBbHeight() / 2f);
     }
 
@@ -382,7 +366,7 @@ public class OverworldDrake extends TameableDragonEntity {
 
     @Override
     public Animation[] getAnimations() {
-        return ANIMATIONS;
+        return OVERWORLD_DRAKE_ANIMATIONS;
     }
 
     public static AttributeModifierMap.MutableAttribute getAttributeMap() {

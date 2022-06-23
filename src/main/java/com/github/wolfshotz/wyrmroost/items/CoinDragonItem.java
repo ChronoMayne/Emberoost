@@ -2,6 +2,7 @@ package com.github.wolfshotz.wyrmroost.items;
 
 import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.entities.dragon.CoinDragonEntity;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.registry.WREntities;
 import com.github.wolfshotz.wyrmroost.registry.WRItems;
 import com.github.wolfshotz.wyrmroost.util.ModUtils;
@@ -33,7 +34,7 @@ public class CoinDragonItem extends Item
     {
         super(WRItems.builder().stacksTo(1));
         if (ModUtils.isClient())
-            ItemModelsProperties.register(this, VARIANT_OVERRIDE, (s, w, p) -> s.getOrCreateTag().getCompound(DATA_ENTITY).getInt(CoinDragonEntity.DATA_VARIANT));
+            ItemModelsProperties.register(this, VARIANT_OVERRIDE, (s, w, p) -> s.getOrCreateTag().getCompound(DATA_ENTITY).getInt(EntityConstants.DATA_VARIANT));
     }
 
     @Override
@@ -72,7 +73,7 @@ public class CoinDragonItem extends Item
     {
         CompoundNBT parent = new CompoundNBT();
         CompoundNBT child = new CompoundNBT(); // because the parent nbt gets merged with the stack, we need to nest a child within the one getting merged
-        child.putInt(CoinDragonEntity.DATA_VARIANT, new Random().nextInt(5));
+        child.putInt(EntityConstants.DATA_VARIANT, new Random().nextInt(5));
         parent.put(DATA_ENTITY, child);
         return ItemLootEntry.lootTableItem(WRItems.COIN_DRAGON.get()).apply(SetNBT.setTag(parent));
     }

@@ -48,7 +48,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class DragonFruitDrake extends TameableDragonEntity implements IForgeShearable {
@@ -74,10 +73,10 @@ public class DragonFruitDrake extends TameableDragonEntity implements IForgeShea
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(FLYING, false);
-        entityData.define(GENDER, false);
-        entityData.define(SLEEPING, false);
-        entityData.define(VARIANT, 0);
+        entityData.define(flyingData, false);
+        entityData.define(genderData, false);
+        entityData.define(sleepingData, false);
+        entityData.define(variantData, 0);
     }
 
     @Override

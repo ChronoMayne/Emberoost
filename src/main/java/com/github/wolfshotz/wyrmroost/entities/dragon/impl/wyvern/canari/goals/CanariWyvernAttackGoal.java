@@ -1,6 +1,7 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.goals;
 
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.CanariWyvern;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
@@ -44,7 +45,7 @@ public class CanariWyvernAttackGoal extends Goal {
 
         if (--attackDelay <= 0 && wyvern.distanceToSqr(target.position().add(0, target.getBoundingBox().getYsize(), 0)) <= 2.25 + target.getBbWidth()) {
             attackDelay = 20 + wyvern.getRandom().nextInt(10);
-            AnimationPacket.send(wyvern, CanariWyvern.ATTACK_ANIMATION);
+            AnimationPacket.send(wyvern, EntityConstants.CANARI_WYVERN_ATTACK_ANIMATION);
             wyvern.doHurtTarget(target);
         }
     }

@@ -14,7 +14,6 @@ import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import com.github.wolfshotz.wyrmroost.util.animation.Animation;
-import com.github.wolfshotz.wyrmroost.util.animation.LogicalAnimation;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -32,15 +31,10 @@ import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 
 public class CanariWyvern extends TameableDragonEntity {
-
-    public static final Animation FLAP_WINGS_ANIMATION = LogicalAnimation.create(22, CanariWyvern::flapWingsAnimation, () -> CanariWyvernModel::flapWingsAnimation);
-    public static final Animation PREEN_ANIMATION = LogicalAnimation.create(36, null, () -> CanariWyvernModel::preenAnimation);
-    public static final Animation THREAT_ANIMATION = LogicalAnimation.create(40, CanariWyvern::threatAnimation, () -> CanariWyvernModel::threatAnimation);
-    public static final Animation ATTACK_ANIMATION = LogicalAnimation.create(15, null, () -> CanariWyvernModel::attackAnimation);
 
     public PlayerEntity pissedOffTarget;
 
@@ -80,10 +74,10 @@ public class CanariWyvern extends TameableDragonEntity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(FLYING, false);
-        entityData.define(GENDER, false);
-        entityData.define(SLEEPING, false);
-        entityData.define(VARIANT, 0);
+        entityData.define(flyingData, false);
+        entityData.define(genderData, false);
+        entityData.define(sleepingData, false);
+        entityData.define(variantData, 0);
     }
 
     @Override
@@ -92,8 +86,8 @@ public class CanariWyvern extends TameableDragonEntity {
 
         if (!level.isClientSide && !isPissed() && !isSleeping() && !isFlying() && !isRiding() && noAnimations()) {
             double rand = getRandom().nextDouble();
-            if (rand < 0.001) AnimationPacket.send(this, FLAP_WINGS_ANIMATION);
-            else if (rand < 0.002) AnimationPacket.send(this, PREEN_ANIMATION);
+            if (rand < 0.001) AnimationPacket.send(this, CANARI_WYVERN_FLAP_WINGS_ANIMATION);
+            else if (rand < 0.002) AnimationPacket.send(this, CANARI_WYVERN_PREEN_ANIMATION);
         }
     }
 
@@ -191,7 +185,7 @@ public class CanariWyvern extends TameableDragonEntity {
 
     @Override
     public Animation[] getAnimations() {
-        return new Animation[]{NO_ANIMATION, FLAP_WINGS_ANIMATION, PREEN_ANIMATION, THREAT_ANIMATION, ATTACK_ANIMATION};
+        return new Animation[]{NO_ANIMATION, CANARI_WYVERN_FLAP_WINGS_ANIMATION, CANARI_WYVERN_PREEN_ANIMATION, CANARI_WYVERN_THREAT_ANIMATION, CANARI_WYVERN_ATTACK_ANIMATION};
     }
 
     @Override

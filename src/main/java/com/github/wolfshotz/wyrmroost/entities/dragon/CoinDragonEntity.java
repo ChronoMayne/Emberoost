@@ -1,5 +1,6 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon;
 
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
 import com.github.wolfshotz.wyrmroost.items.CoinDragonItem;
 import com.github.wolfshotz.wyrmroost.registry.WRItems;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
@@ -13,7 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
@@ -25,19 +25,22 @@ import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
-import static net.minecraft.entity.ai.attributes.Attributes.*;
+import static net.minecraft.entity.ai.attributes.Attributes.MAX_HEALTH;
+import static net.minecraft.entity.ai.attributes.Attributes.MOVEMENT_SPEED;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.DATA_VARIANT;
 
 /**
  * Simple Entity really, just bob and down in the same spot, and land to sleep at night. Easy.
  */
 public class CoinDragonEntity extends MobEntity
 {
-    public static final DataParameter<Integer> VARIANT = EntityDataManager.defineId(CoinDragonEntity.class, DataSerializers.INT);
-    public static String DATA_VARIANT = "Variant";
+
+    private final DataParameter<Integer> variantData;
 
     public CoinDragonEntity(EntityType<? extends CoinDragonEntity> type, World worldIn)
     {
         super(type, worldIn);
+        this.variantData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.INT);
     }
 
     @Override
@@ -50,7 +53,7 @@ public class CoinDragonEntity extends MobEntity
     protected void defineSynchedData()
     {
         super.defineSynchedData();
-        entityData.define(VARIANT, getRandom().nextInt(5));
+        entityData.define(variantData, getRandom().nextInt(5));
     }
 
     @Override
@@ -69,12 +72,12 @@ public class CoinDragonEntity extends MobEntity
 
     public int getVariant()
     {
-        return entityData.get(VARIANT);
+        return entityData.get(variantData);
     }
 
     public void setVariant(int variant)
     {
-        entityData.set(VARIANT, variant);
+        entityData.set(variantData, variant);
     }
 
     // move up if too low, move down if too high, else, just bob up and down

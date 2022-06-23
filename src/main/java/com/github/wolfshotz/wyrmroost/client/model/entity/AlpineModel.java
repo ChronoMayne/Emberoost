@@ -4,6 +4,7 @@ import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.client.model.ModelAnimator;
 import com.github.wolfshotz.wyrmroost.client.model.WRModelRenderer;
 import com.github.wolfshotz.wyrmroost.entities.dragon.AlpineEntity;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
@@ -693,7 +694,7 @@ public class AlpineModel extends DragonEntityModel<AlpineEntity>
 
         this.bob = bob;
 
-        if (!entity.isSleeping() && !entity.isInSittingPose() && entity.getAnimation() != AlpineEntity.WIND_GUST_ANIMATION)
+        if (!entity.isSleeping() && !entity.isInSittingPose() && entity.getAnimation() != EntityConstants.ALPINE_WIND_GUST_ANIMATION)
         {
             if (entity.isFlying()) // flight
             {

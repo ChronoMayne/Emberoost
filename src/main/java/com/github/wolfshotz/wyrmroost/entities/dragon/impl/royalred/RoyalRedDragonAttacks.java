@@ -1,7 +1,6 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred;
 
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.LessShitLookController;
-import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.potion.EffectInstance;

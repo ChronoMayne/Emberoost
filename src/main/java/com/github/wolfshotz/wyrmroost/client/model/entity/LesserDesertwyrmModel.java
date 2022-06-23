@@ -4,6 +4,7 @@ import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.client.model.WREntityModel;
 import com.github.wolfshotz.wyrmroost.client.model.WRModelRenderer;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyrm.desert.LesserDesertwyrm;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.util.ResourceLocation;
@@ -146,7 +147,7 @@ public class LesserDesertwyrmModel extends WREntityModel<LesserDesertwyrm>
             neck.y = bob(0.45f - globalSpeed, 0.15f, false, bob, 0.5f);
         }
 
-        if (entity.getAnimation() != LesserDesertwyrm.BITE_ANIMATION)
+        if (entity.getAnimation() != EntityConstants.LESSER_DESERT_WYRM_BITE_ANIMATION)
         {
             walk(jaw, 0.45f - globalSpeed, 0.1f, false, 0, 0, bob, 0.5f);
             walk(head, 0.45f - globalSpeed, 0.1f, true, 0, (entity.isBurrowed()? 0f : 0.5f), bob, 0.5f);

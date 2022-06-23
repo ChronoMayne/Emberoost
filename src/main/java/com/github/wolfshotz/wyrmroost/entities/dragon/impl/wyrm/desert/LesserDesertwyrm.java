@@ -1,21 +1,19 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyrm.desert;
 
-import com.github.wolfshotz.wyrmroost.client.model.entity.LesserDesertwyrmModel;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyrm.desert.goals.LesserDesertWyrmBurrowGoal;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
 import com.github.wolfshotz.wyrmroost.items.LDWyrmItem;
 import com.github.wolfshotz.wyrmroost.registry.WREntities;
 import com.github.wolfshotz.wyrmroost.registry.WRItems;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
 import com.github.wolfshotz.wyrmroost.util.animation.Animation;
 import com.github.wolfshotz.wyrmroost.util.animation.IAnimatable;
-import com.github.wolfshotz.wyrmroost.util.animation.LogicalAnimation;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.goal.AvoidEntityGoal;
-import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
 import net.minecraft.entity.passive.AnimalEntity;
@@ -27,8 +25,6 @@ import net.minecraft.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -42,9 +38,14 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.function.Predicate;
 
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.DATA_BURROWED;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.LESSER_DESERT_WYRM_BITE_ANIMATION;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 /**
@@ -53,16 +54,16 @@ import static net.minecraft.entity.ai.attributes.Attributes.*;
  * This does not need/require much from that class and would instead create redundancies. do this instead.
  */
 public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
-    public static final String DATA_BURROWED = "Burrowed";
-    public static final Animation BITE_ANIMATION = LogicalAnimation.create(10, null, () -> LesserDesertwyrmModel::biteAnimation);
-    private static final DataParameter<Boolean> BURROWED = EntityDataManager.defineId(LesserDesertwyrm.class, DataSerializers.BOOLEAN);
+
     private static final Predicate<LivingEntity> AVOIDING = t -> EntityPredicates.ATTACK_ALLOWED.test(t) && !(t instanceof LesserDesertwyrm);
 
     public Animation animation = NO_ANIMATION;
     public int animationTick;
+    private final DataParameter<Boolean> burrowedData;
 
     public LesserDesertwyrm(EntityType<? extends LesserDesertwyrm> minutus, World level) {
         super(minutus, level);
+        this.burrowedData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
     }
 
     @Override
@@ -81,7 +82,7 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(BURROWED, false);
+        entityData.define(burrowedData, false);
     }
 
     @Override
@@ -100,11 +101,11 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
      * Whether or not the Minutus is burrowed
      */
     public boolean isBurrowed() {
-        return entityData.get(BURROWED);
+        return entityData.get(burrowedData);
     }
 
     public void setBurrowed(boolean burrow) {
-        entityData.set(BURROWED, burrow);
+        entityData.set(burrowedData, burrow);
     }
 
     // ================================
@@ -145,7 +146,7 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
             setDeltaMovement(0, 0.8, 0);
             setBurrowed(false);
         } else {
-            if (getAnimation() != BITE_ANIMATION) setAnimation(BITE_ANIMATION);
+            if (getAnimation() != LESSER_DESERT_WYRM_BITE_ANIMATION) setAnimation(LESSER_DESERT_WYRM_BITE_ANIMATION);
             doHurtTarget(entity);
         }
     }
@@ -240,7 +241,7 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
 
     @Override
     public Animation[] getAnimations() {
-        return new Animation[]{BITE_ANIMATION};
+        return new Animation[]{LESSER_DESERT_WYRM_BITE_ANIMATION};
     }
 
     @Override

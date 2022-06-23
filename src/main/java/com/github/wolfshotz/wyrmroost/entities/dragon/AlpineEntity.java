@@ -7,7 +7,6 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.FlyerWand
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.MoveToHomeGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRFollowOwnerGoal;
 import com.github.wolfshotz.wyrmroost.entities.projectile.WindGustEntity;
-import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
@@ -35,14 +34,10 @@ import net.minecraftforge.client.event.EntityViewRenderEvent;
 
 import javax.annotation.Nullable;
 
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 
 public class AlpineEntity extends TameableDragonEntity {
-    public static final Animation ROAR_ANIMATION = LogicalAnimation.create(84, AlpineEntity::roarAnimation, () -> AlpineModel::roarAnimation);
-    public static final Animation WIND_GUST_ANIMATION = LogicalAnimation.create(25, AlpineEntity::windGustAnimation, () -> AlpineModel::windGustAnimation);
-    public static final Animation BITE_ANIMATION = LogicalAnimation.create(10, null, () -> AlpineModel::biteAnimation);
-    public static final Animation[] ANIMATIONS = new Animation[]{ROAR_ANIMATION, WIND_GUST_ANIMATION, BITE_ANIMATION};
 
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public final LerpedFloat flightTimer = LerpedFloat.unit();
@@ -75,9 +70,9 @@ public class AlpineEntity extends TameableDragonEntity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(FLYING, false);
-        entityData.define(SLEEPING, false);
-        entityData.define(VARIANT, 0);
+        entityData.define(flyingData, false);
+        entityData.define(sleepingData, false);
+        entityData.define(variantData, 0);
     }
 
     @Override
@@ -89,7 +84,7 @@ public class AlpineEntity extends TameableDragonEntity {
         flightTimer.add(isFlying() ? 0.1f : -0.05f);
 
         if (!level.isClientSide && noAnimations() && !isSleeping() && isJuvenile() && getRandom().nextDouble() < 0.0005)
-            AnimationPacket.send(this, ROAR_ANIMATION);
+            AnimationPacket.send(this, ALPINE_ROAR_ANIMATION);
     }
 
     public void roarAnimation(int time) {
@@ -98,7 +93,7 @@ public class AlpineEntity extends TameableDragonEntity {
             for (LivingEntity entity : getEntitiesNearby(20, e -> e.getType() == WREntities.ALPINE.get())) {
                 AlpineEntity alpine = ((AlpineEntity) entity);
                 if (alpine.noAnimations() && alpine.isIdling() && !alpine.isSleeping())
-                    alpine.setAnimation(ROAR_ANIMATION);
+                    alpine.setAnimation(ALPINE_ROAR_ANIMATION);
             }
         }
     }
@@ -150,7 +145,7 @@ public class AlpineEntity extends TameableDragonEntity {
     @Override
     public void recievePassengerKeybind(int key, int mods, boolean pressed) {
         if (key == KeybindHandler.ALT_MOUNT_KEY && pressed && noAnimations() && isFlying())
-            setAnimation(WIND_GUST_ANIMATION);
+            setAnimation(ALPINE_WIND_GUST_ANIMATION);
     }
 
     @Override
@@ -176,7 +171,7 @@ public class AlpineEntity extends TameableDragonEntity {
 
     @Override
     public void swing(Hand hand) {
-        setAnimation(BITE_ANIMATION);
+        setAnimation(ALPINE_BITE_ANIMATION);
         playSound(SoundEvents.GENERIC_EAT, 1, 1, true);
         super.swing(hand);
     }
@@ -221,7 +216,7 @@ public class AlpineEntity extends TameableDragonEntity {
 
     @Override
     public Animation[] getAnimations() {
-        return ANIMATIONS;
+        return ALPINE_ANIMATIONS;
     }
 
     public static AttributeModifierMap.MutableAttribute getAttributeMap() {

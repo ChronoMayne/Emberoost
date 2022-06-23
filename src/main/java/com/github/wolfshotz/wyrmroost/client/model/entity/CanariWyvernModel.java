@@ -3,6 +3,7 @@ package com.github.wolfshotz.wyrmroost.client.model.entity;
 import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.client.model.WRModelRenderer;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.CanariWyvern;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
@@ -469,7 +470,7 @@ public class CanariWyvernModel extends DragonEntityModel<CanariWyvern>
 
         idle(bob);
 
-        if (this.entity.isFlying() && entity.getAnimation() != CanariWyvern.ATTACK_ANIMATION)
+        if (this.entity.isFlying() && entity.getAnimation() != EntityConstants.CANARI_WYVERN_ATTACK_ANIMATION)
             body1.xRot = pitch * (Mafs.PI / 180f);
         faceTarget(yaw, pitch, 1, neck1, neck2, head);
     }

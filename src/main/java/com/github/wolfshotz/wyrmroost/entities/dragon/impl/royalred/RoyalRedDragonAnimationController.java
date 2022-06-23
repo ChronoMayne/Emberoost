@@ -1,6 +1,5 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred;
 
-import com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred.RoyalRedDragon;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -67,17 +66,17 @@ public class RoyalRedDragonAnimationController {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.roar", true));
                 return PlayState.CONTINUE;
             }
-        } else if (dragon.getEntityData().get(RoyalRedDragon.SLAP)) {
+        } else if (dragon.getEntityData().get(dragon.getSlapData())) {
             if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.walk")) {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
                 return PlayState.CONTINUE;
             }
-        } else if (dragon.getEntityData().get(RoyalRedDragon.SLAP)) {
+        } else if (dragon.getEntityData().get(dragon.getSlapData())) {
             if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.idle")) {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
                 return PlayState.CONTINUE;
             }
-        } else if (dragon.getEntityData().get(RoyalRedDragon.SLAP)) {
+        } else if (dragon.getEntityData().get(dragon.getSlapData())) {
             if (controller.getCurrentAnimation() == null || controller.getCurrentAnimation().animationName.equals("animation.royalred.flying")) {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.royalred.slap", true));
                 return PlayState.CONTINUE;

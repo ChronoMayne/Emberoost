@@ -5,6 +5,7 @@ import com.github.wolfshotz.wyrmroost.Wyrmroost;
 import com.github.wolfshotz.wyrmroost.client.model.ModelAnimator;
 import com.github.wolfshotz.wyrmroost.client.model.WRModelRenderer;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.drake.overworld.OverworldDrake;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -471,7 +472,7 @@ public class OverworldDrakeModel extends DragonEntityModel<OverworldDrake>
         idle(bob);
 
         netHeadYaw = MathHelper.wrapDegrees(netHeadYaw);
-        if (drake.getAnimation() != OverworldDrake.ROAR_ANIMATION && !drake.isSleeping())
+        if (drake.getAnimation() != EntityConstants.OVERWORLD_DRAKE_ROAR_ANIMATION && !drake.isSleeping())
             faceTarget(netHeadYaw, headPitch, 1, neck1, head);
     }
 

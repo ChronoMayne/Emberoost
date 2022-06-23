@@ -37,14 +37,12 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.Random;
 
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 public class SilverGlider extends TameableDragonEntity {
 
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public final LerpedFloat flightTimer = LerpedFloat.unit();
-
     public TemptGoal temptGoal;
     public boolean isGliding; // controlled by player-gliding.
 
@@ -60,10 +58,10 @@ public class SilverGlider extends TameableDragonEntity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(FLYING, false);
-        entityData.define(GENDER, false);
-        entityData.define(VARIANT, 0);
-        entityData.define(SLEEPING, false);
+        entityData.define(flyingData, false);
+        entityData.define(genderData, false);
+        entityData.define(variantData, 0);
+        entityData.define(sleepingData, false);
     }
 
     @Override

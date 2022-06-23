@@ -1,6 +1,7 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.goals;
 
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyvern.canari.CanariWyvern;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.goal.Goal;
@@ -41,7 +42,7 @@ public class CanariWyvernThreatenGoal extends Goal {
             wyvern.getLookControl().setLookAt(target, 90, 90);
             if (!wyvern.isPissed()) {
                 wyvern.pissedOffTarget = target;
-                AnimationPacket.send(wyvern, CanariWyvern.THREAT_ANIMATION);
+                AnimationPacket.send(wyvern, EntityConstants.CANARI_WYVERN_THREAT_ANIMATION);
                 wyvern.clearAI();
             }
 

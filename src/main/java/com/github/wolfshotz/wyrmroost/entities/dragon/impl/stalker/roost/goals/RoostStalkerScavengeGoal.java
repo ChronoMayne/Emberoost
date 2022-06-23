@@ -56,7 +56,7 @@ public class RoostStalkerScavengeGoal extends MoveToBlockGoal {
 
                 if (!stack.isEmpty()) {
                     stack = chest.removeItemNoUpdate(index);
-                    stalker.getInventory().insertItem(RoostStalker.ITEM_SLOT, stack, false);
+                    stalker.getInventory().insertItem(stalker.getDefaultItemSlot(), stack, false);
                 }
             }
         }

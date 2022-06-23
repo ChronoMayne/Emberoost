@@ -5,6 +5,7 @@ import com.github.wolfshotz.wyrmroost.client.ClientEvents;
 import com.github.wolfshotz.wyrmroost.client.model.WRModelRenderer;
 import com.github.wolfshotz.wyrmroost.client.render.RenderHelper;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.ButterflyLeviathan;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
@@ -386,7 +387,7 @@ public class ButterflyLeviathanModel extends DragonEntityModel<ButterflyLeviatha
 
     private void renderConduit(MatrixStack ms, IRenderTypeBuffer buffer, int light, float age, float yaw, float pitch)
     {
-        if ((entity.getAnimation() == ButterflyLeviathan.CONDUIT_ANIMATION && entity.getAnimationTick() < 15) || !entity.hasConduit())
+        if ((entity.getAnimation() == EntityConstants.BUTTERFLY_LEVIATHAN_CONDUIT_ANIMATION && entity.getAnimationTick() < 15) || !entity.hasConduit())
             return;
 
         float rotation = (age * -0.0375f) * (180f / Mafs.PI);

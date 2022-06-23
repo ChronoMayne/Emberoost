@@ -10,10 +10,10 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.DragonInventory;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.*;
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.royalred.goals.RedRoyalDragonAttackGoal;
 import com.github.wolfshotz.wyrmroost.entities.projectile.breath.FireBreathEntity;
-import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
@@ -29,7 +29,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.*;
 import net.minecraft.util.math.vector.Vector3d;
@@ -42,30 +41,23 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import javax.annotation.Nullable;
 
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.ARMOR;
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.ROYAL_RED_DRAGON_ARMOR_SLOT;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.ROYAL_RED_DRAGON_MAX_KNOCKOUT_TIME;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
-
 
 public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable {
 
+    private int knockOutTime = 0;
     private AnimationFactory factory = new AnimationFactory(this);
-
-    public static final int ARMOR_SLOT = 0;
-    private static final int MAX_KNOCKOUT_TIME = 3600; // 3 minutes
-
-
-    public static final DataParameter<Boolean> BREATHING_FIRE = EntityDataManager.defineId(RoyalRedDragon.class, DataSerializers.BOOLEAN);
-    public static final DataParameter<Boolean> KNOCKED_OUT = EntityDataManager.defineId(RoyalRedDragon.class, DataSerializers.BOOLEAN);
-    public static final DataParameter<Boolean> SLAP = EntityDataManager.defineId(RoyalRedDragon.class, DataSerializers.BOOLEAN);
-
     public final LerpedFloat flightTimer = LerpedFloat.unit();
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public final LerpedFloat breathTimer = LerpedFloat.unit();
     public final LerpedFloat knockOutTimer = LerpedFloat.unit();
-    private int knockOutTime = 0;
     private final RoyalRedDragonAttacks attacks;
     private final RoyalRedDragonAnimationController animationController;
+    private final DataParameter<Boolean> breathingFireData;
+    private final DataParameter<Boolean> knockedOutData;
+    private final DataParameter<Boolean> slapData;
 
     public RoyalRedDragon(EntityType<? extends TameableDragonEntity> dragon, World level) {
         super(dragon, level);
@@ -76,25 +68,28 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
 
         this.attacks = new RoyalRedDragonAttacks(this);
         this.animationController = new RoyalRedDragonAnimationController(this);
+        this.breathingFireData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
+        this.knockedOutData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
+        this.slapData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
     }
 
     @Override
     public EntitySerializer<RoyalRedDragon> getSerializer() {
-        return EntitySerializerBuilder.getEntitySerializer(this.getClass(),EntitySerializerType.SLEEPING, EntitySerializerType.VARIANT, EntitySerializerType.GENDER, EntitySerializerType.KNOCK_OUT_TIME);
+        return EntitySerializerBuilder.getEntitySerializer(this.getClass(), EntitySerializerType.SLEEPING, EntitySerializerType.VARIANT, EntitySerializerType.GENDER, EntitySerializerType.KNOCK_OUT_TIME);
     }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
 
-        entityData.define(GENDER, false);
-        entityData.define(SLEEPING, false);
-        entityData.define(VARIANT, 0);
-        entityData.define(BREATHING_FIRE, false);
-        entityData.define(KNOCKED_OUT, false);
-        entityData.define(FLYING, false);
-        entityData.define(SLAP, false);
-        entityData.define(ARMOR, ItemStack.EMPTY);
+        entityData.define(genderData, false);
+        entityData.define(sleepingData, false);
+        entityData.define(variantData, 0);
+        entityData.define(breathingFireData, false);
+        entityData.define(knockedOutData, false);
+        entityData.define(flyingData, false);
+        entityData.define(slapData, false);
+        entityData.define(armorData, ItemStack.EMPTY);
     }
 
     @Override
@@ -161,7 +156,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
                 return ActionResultType.sidedSuccess(level.isClientSide);
             }
 
-            if (isKnockedOut() && knockOutTime <= MAX_KNOCKOUT_TIME / 2) {
+            if (isKnockedOut() && knockOutTime <= ROYAL_RED_DRAGON_MAX_KNOCKOUT_TIME / 2) {
                 if (!level.isClientSide) {
                     /* Roar Animation Trigger
                     // base taming chances on consciousness; the closer it is to waking up the better the chances
@@ -186,7 +181,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     //If entity is attacking, (in this case hand is the default, then running the animation when it swings its "hand" will run the animation normally)
     @Override
     public void swing(Hand hand) {
-        entityData.set(SLAP, true);
+        entityData.set(slapData, true);
         playSound(SoundEvents.GENERIC_EAT, 1, 1, true);
         super.swing(hand);
     }
@@ -204,14 +199,14 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
 
     @Override
     public void onSyncedDataUpdated(DataParameter<?> key) {
-        if (level.isClientSide && key.equals(BREATHING_FIRE) && isBreathingFire())
+        if (level.isClientSide && key.equals(breathingFireData) && isBreathingFire())
             BreathSound.play(this);
         else super.onSyncedDataUpdated(key);
     }
 
     @Override
     public void onInvContentsChanged(int slot, ItemStack stack, boolean onLoad) {
-        if (slot == ARMOR_SLOT) setArmor(stack);
+        if (slot == ROYAL_RED_DRAGON_ARMOR_SLOT) setArmor(stack);
     }
 
     @Override
@@ -250,7 +245,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     public void applyStaffInfo(BookContainer container) {
         super.applyStaffInfo(container);
 
-        container.slot(BookContainer.accessorySlot(getInventory(), ARMOR_SLOT, 0, -15, -15, DragonControlScreen.ARMOR_UV).only(DragonArmorItem.class))
+        container.slot(BookContainer.accessorySlot(getInventory(), ROYAL_RED_DRAGON_ARMOR_SLOT, 0, -15, -15, DragonControlScreen.ARMOR_UV).only(DragonArmorItem.class))
                 .addAction(BookActions.TARGET);
     }
 
@@ -305,21 +300,21 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     }
 
     public boolean isBreathingFire() {
-        return entityData.get(BREATHING_FIRE);
+        return entityData.get(breathingFireData);
     }
 
     public void setBreathingFire(boolean b) {
-        if (!level.isClientSide) entityData.set(BREATHING_FIRE, b);
+        if (!level.isClientSide) entityData.set(breathingFireData, b);
     }
 
     public boolean isKnockedOut() {
-        return entityData.get(KNOCKED_OUT);
+        return entityData.get(knockedOutData);
     }
 
     public void setKnockedOut(boolean b) {
-        entityData.set(KNOCKED_OUT, b);
+        entityData.set(knockedOutData, b);
         if (!level.isClientSide) {
-            knockOutTime = b ? MAX_KNOCKOUT_TIME : 0;
+            knockOutTime = b ? ROYAL_RED_DRAGON_MAX_KNOCKOUT_TIME : 0;
             if (b) {
                 xRot = 0;
                 clearAI();
@@ -336,7 +331,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     //Set Knock out time
     public void setKnockoutTime(int i) {
         knockOutTime = Math.max(0, i);
-        if (i > 0 && !isKnockedOut()) entityData.set(KNOCKED_OUT, true);
+        if (i > 0 && !isKnockedOut()) entityData.set(knockedOutData, true);
     }
 
     //Has fall damage unless dragon is knocked out
@@ -427,5 +422,9 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
 
     public RoyalRedDragonAttacks getAttacks() {
         return attacks;
+    }
+
+    public DataParameter<Boolean> getSlapData() {
+        return slapData;
     }
 }

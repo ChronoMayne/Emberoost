@@ -11,6 +11,7 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.*;
 import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.WRSitGoal;
 import com.github.wolfshotz.wyrmroost.entities.dragonegg.DragonEggProperties;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.DragonEggItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
@@ -46,6 +47,8 @@ import net.minecraft.item.Items;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.particles.ItemParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.Path;
@@ -80,8 +83,8 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.ARMOR;
-import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.*;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.AGE_UPDATE_INTERVAL;
+import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.HEAL_PARTICLES_EVENT_ID;
 import static net.minecraft.entity.ai.attributes.Attributes.*;
 
 
@@ -91,6 +94,8 @@ import static net.minecraft.entity.ai.attributes.Attributes.*;
  */
 public abstract class TameableDragonEntity extends BasicTameableEntity implements IAnimatable, INamedContainerProvider {
     private static final UUID SCALE_MOD_UUID = UUID.fromString("81a0addd-edad-47f1-9aa7-4d76774e055a");
+
+    protected final int defaultItemSlot = 0;
 
     @Deprecated // https://github.com/MinecraftForge/MinecraftForge/issues/7622
     public final LazyOptional<DragonInventory> inventory;
@@ -102,15 +107,31 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     private int animationTick;
     private float ageProgress = 1;
 
+    protected final DataParameter<Boolean> genderData;
+    protected final DataParameter<Boolean> flyingData;
+    protected final DataParameter<Boolean> sleepingData;
+    protected final DataParameter<Integer> variantData; // todo in 1.17: make this use strings for nbt based textures
+    protected final DataParameter<ItemStack> armorData;
+    protected final DataParameter<BlockPos> homePosData;
+    protected final DataParameter<Integer> ageData;
+
     public TameableDragonEntity(EntityType<? extends TameableDragonEntity> dragon, World level) {
         super(dragon, level);
-
-        maxUpStep = 1;
-
         DragonInventory inv = createInv();
-        inventory = LazyOptional.of(inv == null ? null : () -> inv);
-        lookControl = new LessShitLookController(this);
-        if (hasDataParameter(FLYING)) moveControl = new FlyerMoveController(this);
+
+        this.maxUpStep = 1;
+        this.inventory = LazyOptional.of(inv == null ? null : () -> inv);
+        this.lookControl = new LessShitLookController(this);
+
+        this.genderData = DataParameterBuilder.getDataParameter(TameableDragonEntity.class, DataSerializers.BOOLEAN);
+        this.flyingData = DataParameterBuilder.getDataParameter(TameableDragonEntity.class, DataSerializers.BOOLEAN);
+        this.sleepingData = DataParameterBuilder.getDataParameter(TameableDragonEntity.class, DataSerializers.BOOLEAN);
+        this.variantData = DataParameterBuilder.getDataParameter(TameableDragonEntity.class, DataSerializers.INT); // todo in 1.17: make this use strings for nbt based textures
+        this.armorData = DataParameterBuilder.getDataParameter(TameableDragonEntity.class, DataSerializers.ITEM_STACK);
+        this.homePosData = DataParameterBuilder.getDataParameter(TameableDragonEntity.class, DataSerializers.BLOCK_POS);
+        this.ageData = DataParameterBuilder.getDataParameter(TameableDragonEntity.class, DataSerializers.INT);
+
+        if (hasDataParameter(flyingData)) moveControl = new FlyerMoveController(this);
     }
 
     @Override
@@ -150,8 +171,8 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(HOME_POS, BlockPos.ZERO);
-        entityData.define(AGE, 0);
+        entityData.define(homePosData, BlockPos.ZERO);
+        entityData.define(ageData, 0);
     }
 
     public boolean hasDataParameter(DataParameter<?> param) {
@@ -159,32 +180,32 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     }
 
     public int getVariant() {
-        return hasDataParameter(VARIANT) ? entityData.get(VARIANT) : 0;
+        return hasDataParameter(variantData) ? entityData.get(variantData) : 0;
     }
 
     public void setVariant(int variant) {
-        entityData.set(VARIANT, variant);
+        entityData.set(variantData, variant);
     }
 
     /**
      * @return true for male, false for female. anything else is a political abomination and needs to be cancelled.
      */
     public boolean isMale() {
-        return !hasDataParameter(GENDER) || entityData.get(GENDER);
+        return !hasDataParameter(genderData) || entityData.get(genderData);
     }
 
     public void setGender(boolean sex) {
-        entityData.set(GENDER, sex);
+        entityData.set(genderData, sex);
     }
 
     public boolean isSleeping() {
-        return hasDataParameter(SLEEPING) && entityData.get(SLEEPING);
+        return hasDataParameter(sleepingData) && entityData.get(sleepingData);
     }
 
     public void setSleeping(boolean sleep) {
         if (isSleeping() == sleep) return;
 
-        entityData.set(SLEEPING, sleep);
+        entityData.set(sleepingData, sleep);
         if (!level.isClientSide) {
             if (sleep) {
                 clearAI();
@@ -211,12 +232,12 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     }
 
     public boolean isFlying() {
-        return hasDataParameter(FLYING) && entityData.get(FLYING);
+        return hasDataParameter(flyingData) && entityData.get(flyingData);
     }
 
     public void setFlying(boolean fly) {
         if (isFlying() == fly) return;
-        entityData.set(FLYING, fly);
+        entityData.set(flyingData, fly);
         Path prev = navigation.getPath();
         if (fly) {
             // make sure NOT to switch the navigator if liftoff fails
@@ -227,16 +248,16 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     }
 
     public boolean hasArmor() {
-        return hasDataParameter(ARMOR) && entityData.get(ARMOR).getItem() instanceof DragonArmorItem;
+        return hasDataParameter(armorData) && entityData.get(armorData).getItem() instanceof DragonArmorItem;
     }
 
     public ItemStack getArmorStack() {
-        return hasDataParameter(ARMOR) ? entityData.get(ARMOR) : ItemStack.EMPTY;
+        return hasDataParameter(armorData) ? entityData.get(armorData) : ItemStack.EMPTY;
     }
 
     public void setArmor(@Nullable ItemStack stack) {
         if (stack == null || !(stack.getItem() instanceof DragonArmorItem)) stack = ItemStack.EMPTY;
-        entityData.set(ARMOR, stack);
+        entityData.set(armorData, stack);
     }
 
     @Override
@@ -288,7 +309,7 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
         }
 
         updateAgeProgress();
-        if (age < 0 && tickCount % AGE_UPDATE_INTERVAL == 0) entityData.set(AGE, age);
+        if (age < 0 && tickCount % AGE_UPDATE_INTERVAL == 0) entityData.set(ageData, age);
         updateAnimations();
     }
 
@@ -497,10 +518,10 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     @Override
     @SuppressWarnings("ConstantConditions")
     public void onSyncedDataUpdated(DataParameter<?> key) {
-        if (key.equals(SLEEPING) || key.equals(FLYING) || key.equals(TameableEntity.DATA_FLAGS_ID)) {
+        if (key.equals(sleepingData) || key.equals(flyingData) || key.equals(TameableEntity.DATA_FLAGS_ID)) {
             refreshDimensions();
-            if (level.isClientSide && key == FLYING && isFlying() && canBeControlledByRider()) FlyingSound.play(this);
-        } else if (key == ARMOR) {
+            if (level.isClientSide && key == flyingData && isFlying() && canBeControlledByRider()) FlyingSound.play(this);
+        } else if (key == armorData) {
             if (!level.isClientSide) {
                 ModifiableAttributeInstance attribute = getAttribute(Attributes.ARMOR);
                 if (attribute.getModifier(DragonArmorItem.ARMOR_UUID) != null)
@@ -510,8 +531,8 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
                     playSound(SoundEvents.ARMOR_EQUIP_DIAMOND, 1, 1, true);
                 }
             }
-        } else if (key == AGE) {
-            setAge(entityData.get(AGE));
+        } else if (key == ageData) {
+            setAge(entityData.get(ageData));
             updateAgeProgress();
             refreshDimensions();
 
@@ -642,12 +663,12 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
 
     @Nullable
     public BlockPos getHomePos() {
-        BlockPos pos = entityData.get(HOME_POS);
+        BlockPos pos = entityData.get(homePosData);
         return pos == BlockPos.ZERO ? null : pos;
     }
 
     public void setHomePos(@Nullable BlockPos pos) {
-        entityData.set(HOME_POS, pos == null ? BlockPos.ZERO : pos);
+        entityData.set(homePosData, pos == null ? BlockPos.ZERO : pos);
     }
 
     public void clearHome() {
@@ -778,7 +799,7 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     @Override
     public void ageUp(int age, boolean forced) {
         super.ageUp(age, forced);
-        entityData.set(AGE, this.age);
+        entityData.set(ageData, this.age);
     }
 
     @Override
@@ -821,7 +842,7 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
     @Override
     public void setBaby(boolean baby) {
         setAge(baby ? DragonEggProperties.get(getType()).getGrowthTime() : 0);
-        entityData.set(AGE, this.age);
+        entityData.set(ageData, this.age);
     }
 
     @Override
@@ -829,7 +850,7 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
         if (!(mate instanceof TameableDragonEntity)) return false;
         TameableDragonEntity dragon = (TameableDragonEntity) mate;
         if (isInSittingPose() || dragon.isInSittingPose()) return false;
-        if (hasDataParameter(GENDER) && isMale() == dragon.isMale()) return false;
+        if (hasDataParameter(genderData) && isMale() == dragon.isMale()) return false;
         return super.canMate(mate);
     }
 
@@ -995,8 +1016,8 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
 
     @Override
     public ILivingEntityData finalizeSpawn(IServerWorld level, DifficultyInstance difficulty, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT dataTag) {
-        if (hasDataParameter(GENDER)) setGender(getRandom().nextBoolean());
-        if (hasDataParameter(VARIANT)) setVariant(determineVariant());
+        if (hasDataParameter(genderData)) setGender(getRandom().nextBoolean());
+        if (hasDataParameter(variantData)) setVariant(determineVariant());
 
         return super.finalizeSpawn(level, difficulty, reason, data, dataTag);
     }
@@ -1120,7 +1141,7 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
                         .append(new StringTextComponent(String.format(" %s / %s", (int) (getHealth() / 2), (int) getMaxHealth() / 2))
                                 .withStyle(TextFormatting.WHITE)));
 
-        if (hasDataParameter(GENDER)) {
+        if (hasDataParameter(genderData)) {
             boolean isMale = isMale();
             container.addTooltip(new TranslationTextComponent("entity.wyrmroost.dragons.gender." + (isMale ? "male" : "female"))
                     .withStyle(isMale ? TextFormatting.DARK_AQUA : TextFormatting.RED));
@@ -1198,7 +1219,39 @@ public abstract class TameableDragonEntity extends BasicTameableEntity implement
         return new Animation[0];
     }
 
+    public int getDefaultItemSlot() {
+        return defaultItemSlot;
+    }
+
     public static boolean canFlyerSpawn(EntityType<? extends TameableDragonEntity> type, IWorld level, SpawnReason reason, BlockPos pos, Random random) {
         return level.getBlockState(pos.below()).getFluidState().isEmpty();
+    }
+
+    public DataParameter<Boolean> getGenderData() {
+        return genderData;
+    }
+
+    public DataParameter<BlockPos> getHomePosData() {
+        return homePosData;
+    }
+
+    public DataParameter<Boolean> getFlyingData() {
+        return flyingData;
+    }
+
+    public DataParameter<Boolean> getSleepingData() {
+        return sleepingData;
+    }
+
+    public DataParameter<Integer> getAgeData() {
+        return ageData;
+    }
+
+    public DataParameter<Integer> getVariantData() {
+        return variantData;
+    }
+
+    public DataParameter<ItemStack> getArmorData() {
+        return armorData;
     }
 }

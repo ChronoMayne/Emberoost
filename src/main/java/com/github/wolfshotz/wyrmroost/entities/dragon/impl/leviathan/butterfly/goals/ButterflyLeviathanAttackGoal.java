@@ -1,6 +1,7 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.goals;
 
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.ButterflyLeviathan;
+import com.github.wolfshotz.wyrmroost.entities.util.EntityConstants;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.util.Mafs;
 import net.minecraft.entity.EntityType;
@@ -41,9 +42,9 @@ public class ButterflyLeviathanAttackGoal extends Goal {
 
         if (leviathan.noAnimations()) {
             if (distFromTarget > 225 && (leviathan.isTame() || target.getType() == EntityType.PLAYER) && leviathan.canZap())
-                AnimationPacket.send(leviathan, ButterflyLeviathan.LIGHTNING_ANIMATION);
+                AnimationPacket.send(leviathan, EntityConstants.BUTTERFLY_LEVIATHAN_LIGHTNING_ANIMATION);
             else if (isClose && MathHelper.degreesDifferenceAbs((float) Mafs.getAngle(leviathan, target) + 90, leviathan.yRot) < 30)
-                AnimationPacket.send(leviathan, ButterflyLeviathan.BITE_ANIMATION);
+                AnimationPacket.send(leviathan, EntityConstants.BUTTERFLY_LEVIATHAN_BITE_ANIMATION);
         }
     }
 }
