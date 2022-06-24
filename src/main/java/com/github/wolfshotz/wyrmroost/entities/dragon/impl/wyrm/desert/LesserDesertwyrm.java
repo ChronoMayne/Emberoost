@@ -1,7 +1,7 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyrm.desert;
 
 import com.github.wolfshotz.wyrmroost.entities.dragon.impl.wyrm.desert.goals.LesserDesertWyrmBurrowGoal;
-import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParemeterType;
 import com.github.wolfshotz.wyrmroost.items.LDWyrmItem;
 import com.github.wolfshotz.wyrmroost.registry.WREntities;
 import com.github.wolfshotz.wyrmroost.registry.WRItems;
@@ -24,7 +24,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -59,11 +58,10 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
 
     public Animation animation = NO_ANIMATION;
     public int animationTick;
-    private final DataParameter<Boolean> burrowedData;
+    private DataParameter<Boolean> burrowedData;
 
     public LesserDesertwyrm(EntityType<? extends LesserDesertwyrm> minutus, World level) {
         super(minutus, level);
-        this.burrowedData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
     }
 
     @Override
@@ -82,7 +80,7 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(burrowedData, false);
+        entityData.define(getBurrowedData(), false);
     }
 
     @Override
@@ -101,11 +99,11 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
      * Whether or not the Minutus is burrowed
      */
     public boolean isBurrowed() {
-        return entityData.get(burrowedData);
+        return entityData.get(getBurrowedData());
     }
 
     public void setBurrowed(boolean burrow) {
-        entityData.set(burrowedData, burrow);
+        entityData.set(getBurrowedData(), burrow);
     }
 
     // ================================
@@ -248,6 +246,13 @@ public class LesserDesertwyrm extends AnimalEntity implements IAnimatable {
     public void setAnimation(Animation animation) {
         this.animation = animation;
         setAnimationTick(0);
+    }
+
+    public DataParameter<Boolean> getBurrowedData() {
+        if (burrowedData == null) {
+            burrowedData = DataParemeterType.get(DataParemeterType.LESSER_DESERT_WYRM_BURROWED);
+        }
+        return burrowedData;
     }
 
     public static <F extends MobEntity> boolean getSpawnPlacement(EntityType<F> fEntityType, IServerWorld level, SpawnReason reason, BlockPos pos, Random random) {

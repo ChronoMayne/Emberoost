@@ -13,7 +13,7 @@ import com.github.wolfshotz.wyrmroost.entities.projectile.breath.FireBreathEntit
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
-import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParemeterType;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
@@ -28,7 +28,6 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.*;
 import net.minecraft.util.math.vector.Vector3d;
@@ -55,9 +54,9 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     public final LerpedFloat knockOutTimer = LerpedFloat.unit();
     private final RoyalRedDragonAttacks attacks;
     private final RoyalRedDragonAnimationController animationController;
-    private final DataParameter<Boolean> breathingFireData;
-    private final DataParameter<Boolean> knockedOutData;
-    private final DataParameter<Boolean> slapData;
+    private DataParameter<Boolean> breathingFireData;
+    private DataParameter<Boolean> knockedOutData;
+    private DataParameter<Boolean> slapData;
 
     public RoyalRedDragon(EntityType<? extends TameableDragonEntity> dragon, World level) {
         super(dragon, level);
@@ -68,9 +67,6 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
 
         this.attacks = new RoyalRedDragonAttacks(this);
         this.animationController = new RoyalRedDragonAnimationController(this);
-        this.breathingFireData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
-        this.knockedOutData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
-        this.slapData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
     }
 
     @Override
@@ -82,14 +78,14 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     protected void defineSynchedData() {
         super.defineSynchedData();
 
-        entityData.define(genderData, false);
-        entityData.define(sleepingData, false);
-        entityData.define(variantData, 0);
-        entityData.define(breathingFireData, false);
-        entityData.define(knockedOutData, false);
-        entityData.define(flyingData, false);
-        entityData.define(slapData, false);
-        entityData.define(armorData, ItemStack.EMPTY);
+        entityData.define(getGenderData(), false);
+        entityData.define(getSleepingData(), false);
+        entityData.define(getVariantData(), 0);
+        entityData.define(getBreathingFireData(), false);
+        entityData.define(getKnockedOutData(), false);
+        entityData.define(getFlyingData(), false);
+        entityData.define(getSlapData(), false);
+        entityData.define(getArmorData(), ItemStack.EMPTY);
     }
 
     @Override
@@ -181,7 +177,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     //If entity is attacking, (in this case hand is the default, then running the animation when it swings its "hand" will run the animation normally)
     @Override
     public void swing(Hand hand) {
-        entityData.set(slapData, true);
+        entityData.set(getSlapData(), true);
         playSound(SoundEvents.GENERIC_EAT, 1, 1, true);
         super.swing(hand);
     }
@@ -199,7 +195,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
 
     @Override
     public void onSyncedDataUpdated(DataParameter<?> key) {
-        if (level.isClientSide && key.equals(breathingFireData) && isBreathingFire())
+        if (level.isClientSide && key.equals(getBreathingFireData()) && isBreathingFire())
             BreathSound.play(this);
         else super.onSyncedDataUpdated(key);
     }
@@ -300,19 +296,19 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     }
 
     public boolean isBreathingFire() {
-        return entityData.get(breathingFireData);
+        return entityData.get(getBreathingFireData());
     }
 
     public void setBreathingFire(boolean b) {
-        if (!level.isClientSide) entityData.set(breathingFireData, b);
+        if (!level.isClientSide) entityData.set(getBreathingFireData(), b);
     }
 
     public boolean isKnockedOut() {
-        return entityData.get(knockedOutData);
+        return entityData.get(getKnockedOutData());
     }
 
     public void setKnockedOut(boolean b) {
-        entityData.set(knockedOutData, b);
+        entityData.set(getKnockedOutData(), b);
         if (!level.isClientSide) {
             knockOutTime = b ? ROYAL_RED_DRAGON_MAX_KNOCKOUT_TIME : 0;
             if (b) {
@@ -331,7 +327,7 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     //Set Knock out time
     public void setKnockoutTime(int i) {
         knockOutTime = Math.max(0, i);
-        if (i > 0 && !isKnockedOut()) entityData.set(knockedOutData, true);
+        if (i > 0 && !isKnockedOut()) entityData.set(getKnockedOutData(), true);
     }
 
     //Has fall damage unless dragon is knocked out
@@ -425,6 +421,24 @@ public class RoyalRedDragon extends TameableDragonEntity implements IAnimatable 
     }
 
     public DataParameter<Boolean> getSlapData() {
+        if (slapData == null) {
+            slapData = DataParemeterType.get(DataParemeterType.ROYAL_RED_DRAGON_SLAP);
+        }
         return slapData;
     }
+
+    public DataParameter<Boolean> getBreathingFireData() {
+        if (breathingFireData == null) {
+            breathingFireData = DataParemeterType.get(DataParemeterType.ROYAL_RED_DRAGON_BREATHING_FIRE);
+        }
+        return breathingFireData;
+    }
+
+    public DataParameter<Boolean> getKnockedOutData() {
+        if (knockedOutData == null) {
+            knockedOutData = DataParemeterType.get(DataParemeterType.ROYAL_RED_DRAGON_KNOCKED_OUT);
+        }
+        return knockedOutData;
+    }
+
 }

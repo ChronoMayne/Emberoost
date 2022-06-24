@@ -13,7 +13,7 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.impl.leviathan.butterfly.g
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
-import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParemeterType;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
 import com.github.wolfshotz.wyrmroost.network.packets.KeybindHandler;
@@ -31,7 +31,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
@@ -63,14 +62,13 @@ public class ButterflyLeviathan extends TameableDragonEntity {
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public int lightningCooldown = 0;
     public boolean beached = true;
-    private final DataParameter<Boolean> hasConduitData;
+    private DataParameter<Boolean> hasConduitData;
 
     public ButterflyLeviathan(EntityType<? extends TameableDragonEntity> dragon, World level) {
         super(dragon, level);
         noCulling = WRConfig.NO_CULLING.get();
         moveControl = new ButterflyLeviathanMovementController(this);
         maxUpStep = 2;
-        this.hasConduitData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
         setPathfindingMalus(PathNodeType.WATER, 0);
     }
 
@@ -107,7 +105,7 @@ public class ButterflyLeviathan extends TameableDragonEntity {
     protected void defineSynchedData() {
         super.defineSynchedData();
         entityData.define(hasConduitData, false);
-        entityData.define(variantData, 0);
+        entityData.define(getVariantData(), 0);
     }
 
     @Override
@@ -469,6 +467,13 @@ public class ButterflyLeviathan extends TameableDragonEntity {
     @Override
     public boolean checkSpawnRules(IWorld levelIn, SpawnReason spawnReasonIn) {
         return true;
+    }
+
+    public DataParameter<Boolean> getHasConduitData() {
+        if (hasConduitData == null) {
+            hasConduitData = DataParemeterType.get(DataParemeterType.BUTTERFLY_LEVIATHAN_HAS_CONDUIT);
+        }
+        return hasConduitData;
     }
 
     private static void createLightning(World level, Vector3d position, boolean effectOnly) {

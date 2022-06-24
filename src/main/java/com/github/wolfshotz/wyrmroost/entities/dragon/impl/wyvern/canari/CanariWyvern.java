@@ -74,10 +74,10 @@ public class CanariWyvern extends TameableDragonEntity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(flyingData, false);
-        entityData.define(genderData, false);
-        entityData.define(sleepingData, false);
-        entityData.define(variantData, 0);
+        entityData.define(getFlyingData(), false);
+        entityData.define(getGenderData(), false);
+        entityData.define(getSleepingData(), false);
+        entityData.define(getVariantData(), 0);
     }
 
     @Override

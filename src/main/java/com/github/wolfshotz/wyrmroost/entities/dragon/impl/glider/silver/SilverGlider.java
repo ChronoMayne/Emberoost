@@ -58,10 +58,10 @@ public class SilverGlider extends TameableDragonEntity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(flyingData, false);
-        entityData.define(genderData, false);
-        entityData.define(variantData, 0);
-        entityData.define(sleepingData, false);
+        entityData.define(getFlyingData(), false);
+        entityData.define(getGenderData(), false);
+        entityData.define(getVariantData(), 0);
+        entityData.define(getSleepingData(), false);
     }
 
     @Override

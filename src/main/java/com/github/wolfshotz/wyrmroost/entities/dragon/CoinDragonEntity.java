@@ -1,6 +1,6 @@
 package com.github.wolfshotz.wyrmroost.entities.dragon;
 
-import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParemeterType;
 import com.github.wolfshotz.wyrmroost.items.CoinDragonItem;
 import com.github.wolfshotz.wyrmroost.registry.WRItems;
 import com.github.wolfshotz.wyrmroost.registry.WRSounds;
@@ -13,7 +13,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
@@ -32,58 +31,48 @@ import static com.github.wolfshotz.wyrmroost.entities.util.EntityConstants.DATA_
 /**
  * Simple Entity really, just bob and down in the same spot, and land to sleep at night. Easy.
  */
-public class CoinDragonEntity extends MobEntity
-{
+public class CoinDragonEntity extends MobEntity {
 
-    private final DataParameter<Integer> variantData;
+    private DataParameter<Integer> variantData;
 
-    public CoinDragonEntity(EntityType<? extends CoinDragonEntity> type, World worldIn)
-    {
+    public CoinDragonEntity(EntityType<? extends CoinDragonEntity> type, World worldIn) {
         super(type, worldIn);
-        this.variantData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.INT);
     }
 
     @Override
-    protected void registerGoals()
-    {
+    protected void registerGoals() {
         goalSelector.addGoal(0, new LookAtGoal(this, PlayerEntity.class, 4));
     }
 
     @Override
-    protected void defineSynchedData()
-    {
+    protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(variantData, getRandom().nextInt(5));
+        entityData.define(getVariantData(), getRandom().nextInt(5));
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundNBT compound)
-    {
+    public void addAdditionalSaveData(CompoundNBT compound) {
         super.addAdditionalSaveData(compound);
         compound.putInt(DATA_VARIANT, getVariant());
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundNBT compound)
-    {
+    public void readAdditionalSaveData(CompoundNBT compound) {
         super.readAdditionalSaveData(compound);
         setVariant(compound.getInt(DATA_VARIANT));
     }
 
-    public int getVariant()
-    {
-        return entityData.get(variantData);
+    public int getVariant() {
+        return entityData.get(getVariantData());
     }
 
-    public void setVariant(int variant)
-    {
-        entityData.set(variantData, variant);
+    public void setVariant(int variant) {
+        entityData.set(getVariantData(), variant);
     }
 
     // move up if too low, move down if too high, else, just bob up and down
     @Override
-    public void travel(Vector3d positionIn)
-    {
+    public void travel(Vector3d positionIn) {
         if (isNoAi()) return;
         double moveSpeed = 0.02;
         double yMot;
@@ -98,8 +87,7 @@ public class CoinDragonEntity extends MobEntity
     }
 
     @Override
-    protected ActionResultType mobInteract(PlayerEntity player, Hand hand)
-    {
+    protected ActionResultType mobInteract(PlayerEntity player, Hand hand) {
         ActionResultType stackResult = player.getItemInHand(hand).interactLivingEntity(player, this, hand);
         if (stackResult.consumesAction()) return stackResult;
 
@@ -114,78 +102,73 @@ public class CoinDragonEntity extends MobEntity
     }
 
     @Override
-    protected float getStandingEyeHeight(Pose pose, EntitySize size)
-    {
+    protected float getStandingEyeHeight(Pose pose, EntitySize size) {
         return size.height * 0.8645f;
     }
 
     @Override
-    public ItemStack getPickedResult(RayTraceResult target)
-    {
+    public ItemStack getPickedResult(RayTraceResult target) {
         return new ItemStack(WRItems.COIN_DRAGON.get());
     }
 
     @Override
-    public boolean requiresCustomPersistence()
-    {
+    public boolean requiresCustomPersistence() {
         return true;
     }
 
     @Override
-    public boolean isSuppressingSlidingDownLadder()
-    {
+    public boolean isSuppressingSlidingDownLadder() {
         return false;
     }
 
     @Override
-    public boolean causeFallDamage(float distance, float damageMultiplier)
-    {
+    public boolean causeFallDamage(float distance, float damageMultiplier) {
         return false;
     }
 
     @Override
-    protected void checkFallDamage(double y, boolean onGroundIn, BlockState state, BlockPos pos)
-    {
+    protected void checkFallDamage(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
     }
 
     @Nullable
     @Override
-    protected SoundEvent getAmbientSound()
-    {
+    protected SoundEvent getAmbientSound() {
         return WRSounds.ENTITY_COINDRAGON_IDLE.get();
     }
 
     @Nullable
     @Override
-    protected SoundEvent getHurtSound(DamageSource damageSourceIn)
-    {
+    protected SoundEvent getHurtSound(DamageSource damageSourceIn) {
         return WRSounds.ENTITY_COINDRAGON_IDLE.get();
     }
 
     @Nullable
     @Override
-    protected SoundEvent getDeathSound()
-    {
+    protected SoundEvent getDeathSound() {
         return WRSounds.ENTITY_COINDRAGON_IDLE.get();
     }
 
-    public double getAltitude()
-    {
+    public DataParameter<Integer> getVariantData() {
+        if (variantData == null) {
+            variantData = DataParemeterType.get(DataParemeterType.COIN_VARIANT);
+        }
+        return variantData;
+    }
+
+    public double getAltitude() {
         BlockPos.Mutable pos = blockPosition().mutable().move(0, -1, 0);
         while (pos.getY() > 0 && !level.getBlockState(pos).canOcclude()) pos.setY(pos.getY() - 1);
         return getY() - pos.getY();
     }
 
-    public ItemStack getItemStack()
-    {
+    public ItemStack getItemStack() {
         ItemStack stack = new ItemStack(WRItems.COIN_DRAGON.get());
         stack.getOrCreateTag().put(CoinDragonItem.DATA_ENTITY, serializeNBT());
         if (hasCustomName()) stack.setHoverName(getCustomName());
         return stack;
     }
 
-    public static AttributeModifierMap.MutableAttribute getAttributeMap()
-    {
+    public static AttributeModifierMap.MutableAttribute getAttributeMap() {
         return MobEntity.createMobAttributes()
                 .add(MAX_HEALTH, 4)
                 .add(MOVEMENT_SPEED, 0.02);

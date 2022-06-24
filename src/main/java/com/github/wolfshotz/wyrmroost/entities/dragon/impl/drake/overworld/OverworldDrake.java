@@ -12,7 +12,7 @@ import com.github.wolfshotz.wyrmroost.entities.dragon.helpers.ai.goals.*;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializer;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerBuilder;
 import com.github.wolfshotz.wyrmroost.entities.util.EntitySerializerType;
-import com.github.wolfshotz.wyrmroost.entities.util.data.DataParameterBuilder;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParemeterType;
 import com.github.wolfshotz.wyrmroost.items.DragonArmorItem;
 import com.github.wolfshotz.wyrmroost.items.book.action.BookActions;
 import com.github.wolfshotz.wyrmroost.network.packets.AnimationPacket;
@@ -33,7 +33,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.play.server.SEntityVelocityPacket;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
@@ -60,11 +59,10 @@ public class OverworldDrake extends TameableDragonEntity {
 
     public final LerpedFloat sitTimer = LerpedFloat.unit();
     public LivingEntity thrownPassenger;
-    private final DataParameter<Boolean> saddledData;
+    private DataParameter<Boolean> saddledData;
 
     public OverworldDrake(EntityType<? extends OverworldDrake> drake, World level) {
         super(drake, level);
-        this.saddledData = DataParameterBuilder.getDataParameter(this.getClass(), DataSerializers.BOOLEAN);
     }
 
     @Override
@@ -75,11 +73,11 @@ public class OverworldDrake extends TameableDragonEntity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(genderData, false);
-        entityData.define(sleepingData, false);
-        entityData.define(variantData, 0);
-        entityData.define(saddledData, false);
-        entityData.define(armorData, ItemStack.EMPTY);
+        entityData.define(getGenderData(), false);
+        entityData.define(getSleepingData(), false);
+        entityData.define(getVariantData(), 0);
+        entityData.define(getSaddledData(), false);
+        entityData.define(getArmorData(), ItemStack.EMPTY);
     }
 
     @Override
@@ -210,7 +208,7 @@ public class OverworldDrake extends TameableDragonEntity {
         boolean playSound = !stack.isEmpty() && !onLoad;
         switch (slot) {
             case OVERWORLD_DRAKE_SADDLE_SLOT:
-                entityData.set(saddledData, !stack.isEmpty());
+                entityData.set(getSaddledData(), !stack.isEmpty());
                 if (playSound) playSound(SoundEvents.HORSE_SADDLE, 1f, 1f);
                 break;
             case OVERWORLD_DRAKE_ARMOR_SLOT:
@@ -347,7 +345,7 @@ public class OverworldDrake extends TameableDragonEntity {
     }
 
     public boolean isSaddled() {
-        return entityData.get(saddledData);
+        return entityData.get(getSaddledData());
     }
 
     @Override
@@ -367,6 +365,13 @@ public class OverworldDrake extends TameableDragonEntity {
     @Override
     public Animation[] getAnimations() {
         return OVERWORLD_DRAKE_ANIMATIONS;
+    }
+
+    public DataParameter<Boolean> getSaddledData() {
+        if (saddledData == null) {
+            saddledData = DataParemeterType.get(DataParemeterType.OVERWORLD_DRAKE_SADDLED);
+        }
+        return saddledData;
     }
 
     public static AttributeModifierMap.MutableAttribute getAttributeMap() {

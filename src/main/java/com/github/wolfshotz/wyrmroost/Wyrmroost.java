@@ -2,6 +2,7 @@ package com.github.wolfshotz.wyrmroost;
 
 import com.github.wolfshotz.wyrmroost.client.ClientEvents;
 import com.github.wolfshotz.wyrmroost.client.render.RoyalRedRender;
+import com.github.wolfshotz.wyrmroost.entities.util.data.DataParemeterType;
 import com.github.wolfshotz.wyrmroost.network.packets.*;
 import com.github.wolfshotz.wyrmroost.registry.*;
 import com.github.wolfshotz.wyrmroost.util.ModUtils;
